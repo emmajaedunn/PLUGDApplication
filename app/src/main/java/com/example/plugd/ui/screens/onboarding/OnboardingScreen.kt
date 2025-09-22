@@ -1,133 +1,104 @@
 package com.example.plugd.ui.screens.onboarding
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.example.plugd.R
-import com.example.plugd.ui.navigation.Routes
+import com.example.plugd.ui.screens.onboarding.common.PLUGDButton
+import com.example.plugd.ui.screens.onboarding.common.PLUGDTextButton
+import com.example.plugd.ui.screens.onboarding.components.OnboardingPage
+import com.example.plugd.ui.screens.onboarding.components.PagerIndicator
+import com.exmaple.plugd.ui.screens.theme.Dimens.MediumPadding2
+import kotlinx.coroutines.launch
 
-data class OnboardingPage(
-    val title: String,
-    val description: String,
-    val imageRes: Int
-)
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(navController: NavHostController) {
-    val pages = listOf(
-        OnboardingPage(
-            "DISCOVER NEW PLUGS",
-            "Explore upcoming and recommended artists, events, and opportunities nearby.",
-            R.drawable.onboarding_discover
-        ),
-        OnboardingPage(
-            "PLUG FRIENDS INTO YOUR WORLD",
-            "Share your events or creative work with your friends and followers, connect instantly.",
-            R.drawable.onboarding_friends
-        ),
-        OnboardingPage(
-            "STAY PLUGGED IN THE CURRENT",
-            "Get real-time updates, notifications, and recommendations from events and artists you love.",
-            R.drawable.onboarding_current
-        ),
-        OnboardingPage(
-            "PLUG IN TO THE COMMUNITY",
-            "Join a network of artists, fans, and event organisers. Find your vibrant community and find your purpose.",
-            R.drawable.onboarding_community
-        ),
-        OnboardingPage(
-            "READY TO PLUG IN?",
-            "Jump straight into the PLUGD app and start connecting!",
-            R.drawable.onboarding_ready
-        )
-    )
-
-    val pagerState = rememberPagerState(initialPage = 0)
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HorizontalPager(
-            pageCount = pages.size,
-            state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) { page ->
-            OnboardingPageContent(page = pages[page])
+fun OnboardingScreen(
+    navController: androidx.navigation.NavHostController, // add navController
+    onFinish: () -> Unit // add callback
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        val pagerState = rememberPagerState(initialPage = 0) {
+            pages.size
         }
-
-        // Custom pager indicator
-        SimplePagerIndicator(currentPage = pagerState.currentPage, pageCount = pages.size)
-
-        // Last page button
-        if (pagerState.currentPage == pages.lastIndex) {
-            Button(
-                onClick = {
-                    navController.navigate(Routes.REGISTER) {
-                        popUpTo(Routes.ONBOARDING) { inclusive = true }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Sign Up")
+        val buttonsState = remember {
+            derivedStateOf {
+                when (pagerState.currentPage) {
+                    0 -> listOf("", "Next")
+                    1 -> listOf("Back", "Next")
+                    2 -> listOf("Back", "Next")
+                    3 -> listOf("Back", "Get Started")
+                    4 -> listOf("Back", "Get Started")
+                    5 -> listOf("Back", "Get Started")
+                    else -> listOf("", "")
+                }
             }
         }
-    }
-}
 
-@Composable
-fun OnboardingPageContent(page: OnboardingPage) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = page.imageRes),
-            contentDescription = page.title,
-            modifier = Modifier
-                .size(200.dp)
-                .padding(bottom = 24.dp)
-        )
-        Text(page.title, style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(page.description, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
-fun SimplePagerIndicator(currentPage: Int, pageCount: Int) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(16.dp)
-    ) {
-        for (i in 0 until pageCount) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(
-                        color = if (i == currentPage) Color.Black else Color.LightGray,
-                        shape = CircleShape
-                    )
-            )
-            Spacer(modifier = Modifier.width(4.dp))
+        HorizontalPager(state = pagerState) { index ->
+            OnboardingPage(page = pages[index])
         }
+
+        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MediumPadding2)
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            PagerIndicator(
+                modifier = Modifier.width(52.dp),
+                pagesSize = pages.size,
+                selectedPage = pagerState.currentPage
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val scope = rememberCoroutineScope()
+                if (buttonsState.value[0].isNotEmpty()) {
+                    PLUGDTextButton(
+                        text = buttonsState.value[0],
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(
+                                    page = pagerState.currentPage - 1
+                                )
+                            }
+                        }
+                    )
+                }
+                PLUGDButton(
+                    text = buttonsState.value[1],
+                    onClick = {
+                        scope.launch {
+                            if (pagerState.currentPage == pages.lastIndex) {
+                                onFinish() // call the onFinish callback here
+                            } else {
+                                pagerState.animateScrollToPage(
+                                    page = pagerState.currentPage + 1
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        Spacer(modifier = Modifier.weight(0.5f))
     }
 }

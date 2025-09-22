@@ -108,8 +108,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.7.0")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.49")
-    kapt("com.google.dagger:hilt-compiler:2.49")
+    implementation("com.google.dagger:hilt-android:2.52")
+    kapt("com.google.dagger:hilt-android-compiler:2.52")
 
     // Unit tests
     testImplementation("junit:junit:4.13.2")
@@ -122,4 +122,5 @@ dependencies {
     // Onboarding accompanist pages
     implementation("com.google.accompanist:accompanist-pager:0.36.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.36.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 }

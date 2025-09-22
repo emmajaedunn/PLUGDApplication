@@ -7,7 +7,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.plugd.data.hasSeenOnboarding
 import com.example.plugd.data.saveOnboardingCompleted
 import com.example.plugd.ui.navigation.Routes
@@ -23,16 +22,15 @@ import kotlinx.coroutines.launch
 fun AppNavHost() {
     val context = LocalContext.current
     val seenOnboarding by hasSeenOnboarding(context).collectAsState(initial = false)
-
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
         startDestination = if (seenOnboarding) Routes.LOGIN else Routes.ONBOARDING
     ) {
-        // Onboarding
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
+                navController = navController,
                 onFinish = {
                     CoroutineScope(Dispatchers.IO).launch {
                         saveOnboardingCompleted(context)
@@ -44,17 +42,11 @@ fun AppNavHost() {
             )
         }
 
-        // Auth
         composable(Routes.LOGIN) { LoginScreen(navController) }
         composable(Routes.REGISTER) { RegisterScreen(navController) }
 
-        // Home with role argument
-        composable(
-            route = "${Routes.HOME}?role={role}",
-            arguments = listOf(navArgument("role") { defaultValue = "Unknown" })
-        ) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role")
-            HomeScreen(navController, role)
+        composable(Routes.HOME) { backStackEntry ->
+            HomeScreen(navController, role = "Unknown")
         }
     }
 }

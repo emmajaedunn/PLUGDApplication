@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,8 @@ import com.example.plugd.ui.screens.onboarding.components.OnboardingPage
 import com.example.plugd.ui.screens.onboarding.components.PagerIndicator
 import com.exmaple.plugd.ui.screens.theme.Dimens.MediumPadding2
 import kotlinx.coroutines.launch
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -55,21 +58,29 @@ fun OnboardingScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
+// Pager indicator (centered)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp), // add spacing from the bottom
+            horizontalArrangement = Arrangement.Center
+        ) {
+            PagerIndicator(
+                modifier = Modifier.width(60.dp),
+                pagesSize = pages.size,
+                selectedPage = pagerState.currentPage
+            )
+        }
+
+// Arrow button (bottom right)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = MediumPadding2)
                 .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.End
         ) {
-            PagerIndicator(
-                modifier = Modifier.width(52.dp),
-                pagesSize = pages.size,
-                selectedPage = pagerState.currentPage
-            )
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
                 val scope = rememberCoroutineScope()
                 if (buttonsState.value[0].isNotEmpty()) {
                     PLUGDTextButton(
@@ -99,6 +110,15 @@ fun OnboardingScreen(
                 )
             }
         }
-        Spacer(modifier = Modifier.weight(0.5f))
+    Spacer(modifier = Modifier.height(16.dp))
     }
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun OnboardingScreenPreview() {
+    val navController = rememberNavController() // fake nav controller
+    OnboardingScreen(
+        navController = navController,
+        onFinish = {} // no-op for preview
+    )
 }

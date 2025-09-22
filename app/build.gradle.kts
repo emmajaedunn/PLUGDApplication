@@ -55,10 +55,13 @@ dependencies {
 
     // Jetpack Compose & Material3
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.compose.ui:ui:1.9.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.9.1")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.9.1")
     implementation("androidx.compose.foundation:foundation:1.9.1")
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("com.google.android.material:material:1.9.0")
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

@@ -1,45 +1,41 @@
 package com.example.plugd.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.plugd.data.EventEntity
-import com.example.plugd.repository.EventRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.plugd.data.repository.EventRepository
+import com.example.plugd.data.localRoom.entity.EventEntity
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class EventViewModel(private val repository: EventRepository) : ViewModel() {
-
-    private val _relevantEvents = MutableStateFlow<List<EventEntity>>(emptyList())
-    val relevantEvents: StateFlow<List<EventEntity>> = _relevantEvents
-
-    init {
-        viewModelScope.launch {
-            try {
-                _relevantEvents.value = repository.getEvents() // load initial events
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
+    val events: StateFlow<List<EventEntity>> =
+        repository.events.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun addEvent(event: EventEntity) {
         viewModelScope.launch {
             try {
                 repository.addEvent(event)
-                _relevantEvents.value = repository.getEvents()
+            } catch (e: retrofit2.HttpException) {
+                // Network issue from API
+                Log.e("EventViewModel", "HTTP error ${e.code()}: ${e.message()}")
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Other errors
+                Log.e("EventViewModel", "Unexpected error: ${e.localizedMessage}")
             }
         }
     }
 
-    fun syncEventsToLocal() {
+    fun loadEvents() {
         viewModelScope.launch {
             try {
-                _relevantEvents.value = repository.getEvents()
+                repository.loadEvents()
+            } catch (e: retrofit2.HttpException) {
+                Log.e("EventViewModel", "HTTP error ${e.code()}: ${e.message()}")
             } catch (e: Exception) {
-                e.printStackTrace() // prevents app crash if server fails
+                Log.e("EventViewModel", "Unexpected error: ${e.localizedMessage}")
             }
         }
     }

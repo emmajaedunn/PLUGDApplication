@@ -10,7 +10,7 @@ object Routes {
 
     const val EVENT_DETAIL = "event_detail/{eventId}"
 
-    const val PROFILE = "profile_screen"
+    const val PROFILE = "profile/{uid}"
 
     const val SETTINGS = "settings"
 
@@ -19,5 +19,10 @@ object Routes {
     const val ACTIVITY = "activity_screen"
 
     const val FILTER = "filter"
+
+    const val ABOUT_SUPPORT = "about_support"
+
+    const val PLUG_DETAILS = "plug_details"
+
 
 }

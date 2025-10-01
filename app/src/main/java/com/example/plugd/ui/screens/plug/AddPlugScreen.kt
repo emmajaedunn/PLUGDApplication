@@ -1,25 +1,38 @@
 package com.example.plugd.ui.screens.plug
 
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
-import com.example.plugd.data.EventEntity
+import com.example.plugd.data.localRoom.entity.EventEntity
+import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.nav.AddTopBar
 import com.example.plugd.viewmodels.EventViewModel
 import kotlinx.coroutines.launch
+import android.Manifest
+import android.net.Uri
+import android.widget.Toast
 
 @Composable
 fun AddPlugScreen(
     navController: NavHostController,
-    eventViewModel: EventViewModel
+    eventViewModel: EventViewModel,
+    currentUserId: String
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Remember input state
     var pluggingWhat by remember { mutableStateOf("") }
@@ -27,7 +40,26 @@ fun AddPlugScreen(
     var plugTitle by remember { mutableStateOf("") }
     var plugDescription by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
-    var supportDocs by remember { mutableStateOf("") }
+    var supportDocs by remember { mutableStateOf<String?>(null) }
+
+    // Launcher to pick a file
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->  // Explicitly specify the type
+        uri?.let {
+            supportDocs = it.toString()
+        }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted: Boolean ->
+        if (granted) {
+            filePickerLauncher.launch("*/*")
+        } else {
+            Toast.makeText(context, "Permission denied to access files", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = { AddTopBar(navController = navController) }
@@ -61,12 +93,41 @@ fun AddPlugScreen(
             Spacer(Modifier.height(18.dp))
 
             // Input Fields
-            InputField(label = "What are you plugging?", value = pluggingWhat, onValueChange = { pluggingWhat = it }, placeholder = "ex. Looking for an artist for a gig on Friday.")
-            InputField(label = "Plug Category", value = plugCategory, onValueChange = { plugCategory = it }, placeholder = "ex. Gig Opportunity")
-            InputField(label = "Plug Title", value = plugTitle, onValueChange = { plugTitle = it }, placeholder = "ex. Artist wanted")
-            InputField(label = "Plug Description", value = plugDescription, onValueChange = { plugDescription = it }, placeholder = "ex. Date: 10/07/2025 | Time: 6-8PM | Venue: Openwine")
-            InputField(label = "Location", value = location, onValueChange = { location = it }, placeholder = "ex. 31 Bree Street Cape Town")
-            InputField(label = "Upload Support Documents", value = supportDocs, onValueChange = { supportDocs = it }, placeholder = "Choose files...png, jpeg, pdf")
+            InputField(
+                label = "What are you plugging?",
+                value = pluggingWhat,
+                onValueChange = { pluggingWhat = it },
+                placeholder = "ex. Looking for an artist for a gig on Friday."
+            )
+            InputField(
+                label = "Plug Category",
+                value = plugCategory,
+                onValueChange = { plugCategory = it },
+                placeholder = "ex. Gig Opportunity"
+            )
+            InputField(
+                label = "Plug Title",
+                value = plugTitle,
+                onValueChange = { plugTitle = it },
+                placeholder = "ex. Artist wanted"
+            )
+            InputField(
+                label = "Plug Description",
+                value = plugDescription,
+                onValueChange = { plugDescription = it },
+                placeholder = "ex. Date: 10/07/2025 | Time: 6-8PM | Venue: Openwine"
+            )
+            InputField(
+                label = "Location",
+                value = location,
+                onValueChange = { location = it },
+                placeholder = "ex. 31 Bree Street Cape Town"
+            )
+
+            // File picker for support docs
+            FilePickerField(supportDocs = supportDocs) { uri ->
+                supportDocs = uri.toString()
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -74,18 +135,23 @@ fun AddPlugScreen(
             Button(
                 onClick = {
                     val newEvent = EventEntity(
-                        id = System.currentTimeMillis(),
+                        eventId = System.currentTimeMillis().toString(),
                         name = plugTitle,
-                        location = location,
-                        date = System.currentTimeMillis(),
                         category = plugCategory,
                         description = plugDescription,
-                        createdBy = "CurrentUser" // you can replace with actual user
+                        location = location,
+                        date = System.currentTimeMillis(),
+                        createdBy = currentUserId,
+                        supportDocs = supportDocs?.takeIf { it.isNotEmpty() }
                     )
                     scope.launch {
-                        eventViewModel.addEvent(newEvent)
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
+                        try {
+                            eventViewModel.addEvent(newEvent)
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.HOME) { inclusive = true }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace() // log the error to see why it crashes
                         }
                     }
                 },

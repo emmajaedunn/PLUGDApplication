@@ -6,16 +6,18 @@ import java.util.UUID
 
 @Entity(tableName = "channels")
 data class ChannelEntity(
-    @PrimaryKey val id: String,
-    val name: String
+    @PrimaryKey val channelId: String = UUID.randomUUID().toString(),
+    val name: String,
+    val lastMessage: String? = null,
+    val lastUpdated: Long = System.currentTimeMillis()
 )
 
 @Entity(tableName = "messages")
 data class MessageEntity(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey val messageId: String = UUID.randomUUID().toString(),
     val channelId: String,
     val senderId: String,
     val senderName: String,
     val content: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long
 )

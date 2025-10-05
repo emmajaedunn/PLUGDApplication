@@ -29,7 +29,7 @@ fun CommunityTopBar(navController: NavHostController) {
         actions = {
             // Settings button on the right
             IconButton(onClick = {
-                navController.navigate("settings")
+                navController.navigate("settings_community")
             }) {
                 Icon(
                     painter = painterResource(id = R.drawable.btn_settings),

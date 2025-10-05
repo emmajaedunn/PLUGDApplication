@@ -1,6 +1,7 @@
 package com.example.plugd.model
 
 import java.time.Instant
+import java.util.Date
 
 data class Community(
     val communityId: String,
@@ -13,6 +14,6 @@ data class Post(
     val userId: String,
     val communityId: String,
     val text: String,
-    val mediaUrl: String? = null,
-    val dateTime: Instant
+    val mediaUrl: String?,
+    val dateTime: Date
 )

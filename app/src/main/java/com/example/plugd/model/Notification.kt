@@ -8,3 +8,10 @@ data class AppNotification(
     val type: NotificationType,
     val readStatus: Boolean
 )
+
+data class ChatNotification(
+    val id: String,           // Unique ID for the notification (e.g., message ID)
+    val title: String,        // Notification title
+    val body: String,         // Notification content
+    val channelId: String     // Optional: channel for grouping (not the Android channel, just your app logic)
+)

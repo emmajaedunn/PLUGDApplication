@@ -8,28 +8,20 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChatDao {
 
-    // ---------------- CHANNELS ----------------
-    @Query("SELECT * FROM channels ORDER BY name ASC")
+    @Query("SELECT * FROM channels")
     fun getAllChannels(): Flow<List<ChannelEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertChannels(channels: List<ChannelEntity>)
+    @Query("SELECT * FROM channels WHERE channelId = :channelId")
+    suspend fun getChannelById(channelId: String): ChannelEntity
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertChannel(channel: ChannelEntity)
-
-    @Query("SELECT * FROM channels WHERE id = :channelId LIMIT 1")
-    suspend fun getChannelById(channelId: String): ChannelEntity?
-
-    // ---------------- MESSAGES ----------------
-    @Query("SELECT * FROM messages WHERE channelId = :channelId ORDER BY timestamp ASC")
+    @Query("SELECT * FROM messages WHERE channelId = :channelId")
     fun getMessages(channelId: String): Flow<List<MessageEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessages(messages: List<MessageEntity>)
+    suspend fun insertMessage(message: MessageEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessage(message: MessageEntity)
+    suspend fun insertMessages(messages: List<MessageEntity>)
 
     @Query("DELETE FROM messages WHERE channelId = :channelId")
     suspend fun deleteMessages(channelId: String)

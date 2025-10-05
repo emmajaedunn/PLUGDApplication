@@ -54,6 +54,5 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             .build()
 
         val notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-        NotificationManagerCompat.from(this).notify(notificationId, notification)
     }
 }

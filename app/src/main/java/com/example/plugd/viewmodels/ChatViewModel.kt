@@ -2,55 +2,62 @@ package com.example.plugd.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.plugd.data.repository.ChatRepository
 import com.example.plugd.model.Channel
 import com.example.plugd.model.Message
-import com.example.plugd.repository.ChatRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
+class ChatViewModel(
+    private val repository: ChatRepository,
+    val currentUserId: String
+) : ViewModel() {
 
     private val _channels = MutableStateFlow<List<Channel>>(emptyList())
     val channels: StateFlow<List<Channel>> get() = _channels
 
-    private val _userJoinedChannels = MutableStateFlow<List<Channel>>(emptyList())
-    val userJoinedChannels: StateFlow<List<Channel>> get() = _userJoinedChannels
-
-    private val _userFeed = MutableStateFlow<List<Message>>(emptyList())
-    val userFeed: StateFlow<List<Message>> get() = _userFeed
-
-    init {
-        loadChannels()
-        loadUserJoinedChannels()
-        loadUserFeed()
-    }
+    private val _messages = MutableStateFlow<List<Message>>(emptyList())
+    val messages: StateFlow<List<Message>> get() = _messages
 
     fun loadChannels() {
         viewModelScope.launch {
-            repository.getChannels().collect { list ->
-                _channels.value = list
-            }
+            repository.getChannels().collect { _channels.value = it }
         }
     }
 
-    fun loadUserJoinedChannels() {
+    fun loadMessages(channelId: String) {
         viewModelScope.launch {
-            repository.getUserJoinedChannels().collect { list ->
-                _userJoinedChannels.value = list
+            repository.getMessages(channelId).collect { msgs ->
+                _messages.value = msgs
             }
         }
     }
 
-    fun loadUserFeed() {
+    fun observeRealtimeMessages(channelId: String, onNewMessage: (Message) -> Unit) {
         viewModelScope.launch {
-            repository.getUserFeed().collect { list ->
-                _userFeed.value = list
+            repository.observeRealtimeMessages(channelId).collect { msg ->
+                if (_messages.value.none { it.id == msg.id }) {
+                    _messages.value = _messages.value + msg
+                    if (msg.senderId != currentUserId) onNewMessage(msg)
+                }
             }
         }
     }
 
-    fun sendMessage(channelId: String, message: Message) {
-        repository.sendMessage(channelId, message)
+    fun sendMessage(channelId: String, content: String, senderName: String) {
+        viewModelScope.launch {
+            repository.sendMessage(
+                channelId,
+                Message(
+                    id = "",
+                    channelId = channelId,
+                    senderId = currentUserId,
+                    content = content,
+                    senderName = senderName,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        }
     }
 }

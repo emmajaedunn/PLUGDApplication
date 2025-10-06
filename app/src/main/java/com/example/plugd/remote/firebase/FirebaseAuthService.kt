@@ -7,7 +7,6 @@ import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthService {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-
     suspend fun registerUser(email: String, password: String): FirebaseUser? {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
@@ -35,8 +34,9 @@ class FirebaseAuthService {
         }
     }
 
-    fun logout() = auth.signOut()
-    fun getCurrentUser(): FirebaseUser? = auth.currentUser
+    fun logout() {
+        FirebaseAuth.getInstance().signOut()
+    }
 }
 
 

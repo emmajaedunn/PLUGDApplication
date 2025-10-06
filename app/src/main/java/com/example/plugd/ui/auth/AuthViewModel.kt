@@ -45,6 +45,13 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             }
         }
     }
+
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            repository.logout() // ✅ This works if repository is AuthRepository
+            onComplete()
+        }
+    }
 }
 
 

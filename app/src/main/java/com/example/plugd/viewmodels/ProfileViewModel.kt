@@ -3,6 +3,7 @@ package com.example.plugd.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plugd.data.mappers.toUserProfile
+import com.example.plugd.data.repository.AuthRepository
 import com.example.plugd.data.repository.ProfileRepository
 import com.example.plugd.model.UserProfile
 import com.google.firebase.auth.FirebaseAuth
@@ -11,7 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    //just added
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _profile = MutableStateFlow<UserProfile?>(null)
@@ -74,6 +77,13 @@ class ProfileViewModel(
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update profile"
             }
+        }
+    }
+
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            authRepository.logout()
+            onComplete()
         }
     }
 }

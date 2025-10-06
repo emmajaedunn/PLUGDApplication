@@ -17,7 +17,7 @@ class AuthRepository(
 ) {
     private val usersCollection = firestore.collection("users")
 
-    /** Register user + create Firestore profile */
+    /* Register user + create Firestore profile */
     suspend fun register(name: String, username: String, email: String, password: String): UserEntity {
         val firebaseUser = authService.registerUser(email, password)
             ?: throw Exception("Firebase registration failed")
@@ -75,8 +75,8 @@ class AuthRepository(
         userDao.insertUser(userEntity)
         return userEntity
     }
-
     fun logout() = authService.logout()
+
 }
 
 

@@ -1,5 +1,6 @@
 package com.example.plugd.ui.screens.nav
 
+import EventRepository
 import GoogleAuthUiClient
 import android.net.Uri
 import androidx.compose.runtime.Composable
@@ -36,15 +37,15 @@ import com.example.plugd.data.localRoom.database.AppDatabase
 import com.example.plugd.data.repository.AuthRepository
 import com.example.plugd.data.repository.ChatRepository
 import com.example.plugd.data.repository.ProfileRepository
-import com.example.plugd.data.repository.EventRepository
-import com.example.plugd.remote.api.RetrofitInstance
 import com.example.plugd.remote.firebase.FirebaseAuthService
 import com.example.plugd.data.remoteFireStore.EventRemoteDataSource
+import com.example.plugd.remote.api.RetrofitInstance
 import com.example.plugd.ui.auth.AuthViewModel
 import com.example.plugd.ui.auth.AuthViewModelFactory
 import com.example.plugd.ui.screens.community.CommunitySettingsPage
 import com.example.plugd.ui.screens.plug.PlugDetailsScreen
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun AppNavHost(startDestination: String = Routes.REGISTER) {
@@ -72,7 +73,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER) {
         factory = AuthViewModelFactory(authRepository)
     )
     val profileViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(profileRepository)
+        factory = ProfileViewModelFactory(profileRepository, authRepository)
     )
     val chatViewModel: ChatViewModel = viewModel(
         factory = ChatViewModelFactory(chatRepository, loggedInUserId)
@@ -111,7 +112,22 @@ fun AppNavHost(startDestination: String = Routes.REGISTER) {
             )
         }
 
-        // --- Home Screen ---
+        composable(Routes.HOME) {
+            MainScreenWithBottomNav(
+                navController = navController,
+                topBar = { HomeTopBar(navController) },
+                content = { padding ->
+                    HomeScreen(
+                        navController = navController,
+                        eventViewModel = eventViewModel,
+                        userId = loggedInUserId  // ✅ Add this line
+                    )
+                },
+                loggedInUserId = loggedInUserId
+            )
+        }
+
+        /* --- Home Screen ---
         composable(Routes.HOME) {
             MainScreenWithBottomNav(
                 navController = navController,
@@ -121,7 +137,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER) {
                 },
                 loggedInUserId = loggedInUserId
             )
-        }
+        }*/
 
         // --- Community Screen ---
         composable(Routes.COMMUNITY) {
@@ -193,9 +209,24 @@ fun AppNavHost(startDestination: String = Routes.REGISTER) {
             )
         }
 
-        // --- Settings Screen ---
+        // --- Settings Screen (Profile) ---
         composable(Routes.SETTINGS) {
             SettingsScreen(
+                navController = navController,
+                profileViewModel = profileViewModel,
+                onSignOut = {
+                    profileViewModel.logout {
+                        navController.navigate(Routes.REGISTER) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true } // clears all previous screens
+                            launchSingleTop = true // avoid duplicate REGISTER screen
+                        }
+                    }
+                },
+                onDeleteAccount = { /* ... */ }
+            )
+        }
+
+            /*SettingsScreen(
                 navController = navController,
                 profileViewModel = profileViewModel,
                 onSignOut = {
@@ -208,7 +239,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER) {
                     // Add delete account logic here
                 }
             )
-        }
+        }*/
 
         // --- Filter Screen ---
         composable(Routes.FILTER) { FilterScreen(navController = navController) }

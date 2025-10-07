@@ -257,10 +257,35 @@ Key features include:
        3. Run unit tests  
        4. Upload artifacts for review  
 
-**Example CI Badge:**  
-![Build Status](https://github.com/<YOUR_USERNAME>/<YOUR_REPO>/actions/workflows/android-ci.yml/badge.svg)
+**CI Badge:**  
+![Build Status](https://github.com/<emmajaedunn>/<ThePLUGDPlatform>/actions/workflows/android-ci.yml/badge.svg)
 
 **Workflow Screenshot:**
+
+	name: Android CI
+
+	on:
+  	push:
+    branches: [ main, develop ]
+  	pull_request:
+    branches: [ main, develop ]
+
+	jobs:
+  	build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Build project
+      run: ./gradlew build
+    - name: Run tests
+      run: ./gradlew test
+	  
 ![GitHub Actions Workflow](images/github_actions.png)
 
 ## Getting Started

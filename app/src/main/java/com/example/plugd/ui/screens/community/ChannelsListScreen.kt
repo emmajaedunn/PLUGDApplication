@@ -1,4 +1,4 @@
-package com.example.plugd.ui.screens.community
+/*package com.example.plugd.ui.screens.community
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,4 +30,4 @@ fun ChannelsListScreen(navController: NavHostController, viewModel: ChatViewMode
             }
         }
     }
-}
+}*/

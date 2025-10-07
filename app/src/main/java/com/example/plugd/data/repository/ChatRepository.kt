@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class ChatRepository(
@@ -60,6 +61,12 @@ class ChatRepository(
         awaitClose { listener.remove() }
     }
 
+    suspend fun getUserName(userId: String): String {
+        val doc = db.collection("users").document(userId).get().await()
+        // Fetch 'username' field instead of 'displayName'
+        return doc.getString("username") ?: "Unknown"
+    }
+
     // ---------------- REAL-TIME SINGLE MESSAGE OBSERVER ----------------
     fun observeRealtimeMessages(channelId: String): Flow<Message> = callbackFlow {
         val listener = db.collection("channels")
@@ -68,7 +75,8 @@ class ChatRepository(
             .orderBy("timestamp")
             .addSnapshotListener { snapshot, _ ->
                 snapshot?.documentChanges?.forEach { change ->
-                    val msg = change.document.toObject(Message::class.java)?.copy(id = change.document.id)
+                    val msg =
+                        change.document.toObject(Message::class.java)?.copy(id = change.document.id)
                     msg?.let {
                         trySend(it)
 
@@ -82,7 +90,26 @@ class ChatRepository(
         awaitClose { listener.remove() }
     }
 
-    // ---------------- SEND MESSAGE ----------------
+    suspend fun sendMessage(channelId: String, message: Message) {
+        val docRef = db.collection("channels")
+            .document(channelId)
+            .collection("messages")
+            .document() // creates a document with a Firestore ID
+
+        val messageWithId = message.copy(id = docRef.id)
+
+        // 1️⃣ Push to Firestore
+        docRef.set(messageWithId)
+            .await() // you may need kotlinx-coroutines-play-services for .await()
+
+        // 2️⃣ Save to Room
+        withContext(Dispatchers.IO) {
+            chatDao.insertMessage(messageWithId.toMessageEntity())
+        }
+    }
+}
+
+    /* ---------------- SEND MESSAGE ----------------
     suspend fun sendMessage(channelId: String, message: Message) {
         // 1️⃣ Push to Firestore
         db.collection("channels")
@@ -95,4 +122,4 @@ class ChatRepository(
             chatDao.insertMessage(message.toMessageEntity())
         }
     }
-}
+}*/

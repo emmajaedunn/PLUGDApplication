@@ -1,14 +1,29 @@
 package com.example.plugd.data.remoteFireStore
 
 import com.example.plugd.data.localRoom.entity.EventEntity
-import com.example.plugd.remote.api.ApiService
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
-class EventRemoteDataSource(private val api: ApiService) {
-    suspend fun getEvents(): List<EventEntity> = api.getEvents()
-    suspend fun addEvent(event: EventEntity) = api.addEvent(event)
+class EventRemoteDataSource(private val firestore: FirebaseFirestore) {
+    private val eventsCol = firestore.collection("events")
+
+    suspend fun addEvent(event: EventEntity) {
+        eventsCol.document(event.eventId).set(event)
+    }
+
+    suspend fun getEvents(): List<EventEntity> {
+        val snapshot = eventsCol.get().await()
+        return snapshot.documents.mapNotNull { it.toObject(EventEntity::class.java) }
+    }
+
+    suspend fun getUserEvents(userId: String): List<EventEntity> {
+        val snapshot = eventsCol
+            .whereEqualTo("createdBy", userId)
+            .get()
+            .await()
+        return snapshot.documents.mapNotNull { it.toObject(EventEntity::class.java) }
+    }
 }
-
-
 
 
 

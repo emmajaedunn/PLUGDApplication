@@ -45,19 +45,29 @@ class ChatViewModel(
         }
     }
 
-    fun sendMessage(channelId: String, content: String, senderName: String) {
+    /** ✅ Send message using Firestore username */
+    fun sendMessage(channelId: String, content: String) {
         viewModelScope.launch {
-            repository.sendMessage(
-                channelId,
-                Message(
+            try {
+                // Fetch the username from Firestore (or local cache)
+                val username = repository.getUserName(currentUserId)
+
+                // Create message
+                val message = Message(
                     id = "",
                     channelId = channelId,
                     senderId = currentUserId,
                     content = content,
-                    senderName = senderName,
+                    senderName = username,
                     timestamp = System.currentTimeMillis()
                 )
-            )
+
+                // Send it
+                repository.sendMessage(channelId, message)
+            } catch (e: Exception) {
+                // Optional: handle error (e.g., show a toast)
+                e.printStackTrace()
+            }
         }
     }
 }

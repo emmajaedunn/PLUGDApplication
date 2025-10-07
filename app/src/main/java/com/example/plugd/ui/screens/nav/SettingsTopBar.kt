@@ -15,14 +15,14 @@ import com.example.plugd.R
 @Composable
 fun SettingsTopBar(navController: NavController) {
     TopAppBar(
-        title = { /* No title if you want */ },
+        title = { /* No title */ },
         navigationIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.btn_back),
                         contentDescription = "Back",
-                        modifier = Modifier.size(24.dp) // typical icon size
+                        modifier = Modifier.size(24.dp)
                     )
                 }
                 Text(

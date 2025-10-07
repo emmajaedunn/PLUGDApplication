@@ -73,10 +73,9 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text("Welcome Back,", fontSize = 14.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(userProfile?.username ?: "Loading...", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(userProfile?.role ?: "Artist", fontSize = 14.sp, color = Color.DarkGray)
                     Row {
-                        Text("• ${userProfile?.bio ?: "No bio"}", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("• ${userProfile?.location ?: "Unknown"}", fontSize = 12.sp, color = Color.Gray)
                     }
@@ -95,7 +94,7 @@ fun ProfileScreen(
                     Text("Bio", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        userProfile?.bio ?: "No bio available",
+                        userProfile?.bio ?: "No bio",
                         fontSize = 13.sp,
                         color = Color.DarkGray
                     )
@@ -116,7 +115,7 @@ fun ProfileScreen(
                         contentDescription = "Follower",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(60.dp)
                             .clip(CircleShape)
                             .padding(4.dp)
                     )
@@ -158,7 +157,7 @@ fun SocialIcon(iconRes: Int, desc: String) {
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = desc,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(60.dp)
         )
     }
 }

@@ -15,7 +15,7 @@ import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.data.localRoom.entity.ChannelEntity
 import com.example.plugd.data.localRoom.entity.UserProfileEntity
 
-@Database(entities = [UserEntity::class, EventEntity::class, UserProfileEntity::class, ChannelEntity::class, MessageEntity::class], version = 5, exportSchema = false)
+@Database(entities = [UserEntity::class, EventEntity::class, UserProfileEntity::class, ChannelEntity::class, MessageEntity::class], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun eventDao(): EventDao

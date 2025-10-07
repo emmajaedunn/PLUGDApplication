@@ -23,7 +23,6 @@ fun UserProfile.toUserProfileEntity(): UserProfileEntity {
         bio = this.bio,
         location = this.location,
         gender = this.gender,
-        role = this.role,
         followersCount = this.followersCount,
         notificationsEnabled = this.notificationsEnabled,
         darkModeEnabled = this.darkModeEnabled,
@@ -42,12 +41,11 @@ fun UserProfileEntity.toUserProfile(): UserProfile {
         bio = this.bio ?: "",
         location = this.location ?: "",
         gender = this.gender ?: "",
-        role = this.role ?: "User",
         followersCount = this.followersCount,
         notificationsEnabled = this.notificationsEnabled,
         darkModeEnabled = this.darkModeEnabled,
         biometricEnabled = this.biometricEnabled,
         pushEnabled = this.pushEnabled,
-        events = emptyList() // or map from entity if needed
+        events = emptyList()
     )
 }

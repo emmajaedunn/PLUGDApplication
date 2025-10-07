@@ -1,3 +1,4 @@
+// Implemented in Final POE
 package com.example.plugd.ui.screens.settings
 
 import androidx.compose.foundation.layout.*
@@ -36,17 +37,6 @@ fun BiometricSettingsPage(navController: NavHostController) {
         ) {
             Text(resultMessage)
 
-            /* Button(
-                onClick = {
-                    BiometricLogin(
-                        title = "Login with Biometrics",
-                        onSuccess = { resultMessage = "Authentication Successful ✅" },
-                        onFailure = { resultMessage = "Authentication Failed ❌" }
-                    )
-                }
-            ) {
-                Text("Authenticate")
-            }*/
         }
     }
 }

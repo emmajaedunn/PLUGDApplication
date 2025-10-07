@@ -7,11 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.nav.HomeTopBar
+import com.example.plugd.ui.screens.theme.LightOrange
 import com.example.plugd.ui.theme.Telegraf
 import com.example.plugd.viewmodels.EventViewModel
 import java.text.SimpleDateFormat
@@ -80,7 +82,7 @@ fun EventCard(event: EventEntity, modifier: Modifier = Modifier) {
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = LightOrange)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = event.name, style = MaterialTheme.typography.titleLarge)
@@ -88,7 +90,7 @@ fun EventCard(event: EventEntity, modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "📍 ${event.location}", style = MaterialTheme.typography.bodySmall)
             Text(text = "🗓 $eventDate", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Created by: ${event.createdBy}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Created by: ${event.createdByName}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

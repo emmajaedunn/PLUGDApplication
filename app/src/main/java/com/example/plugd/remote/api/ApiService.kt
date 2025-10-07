@@ -28,7 +28,7 @@ interface ApiService {
     @POST("api/auth/firebase")
     suspend fun loginWithFirebase(@Body body: Map<String, String>): TokenResponse
 
-    // 🔹 Profile endpoints
+    // Profile endpoints
     @GET("api/profile/{id}")
     suspend fun getProfile(@retrofit2.http.Path("id") userId: String): Response<UserDto>
 

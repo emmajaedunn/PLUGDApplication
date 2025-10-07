@@ -1,4 +1,5 @@
-package com.example.plugd.ui.auth
+// Implemented in Final POE
+package com.example.plugd.ui.screens.auth
 
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
@@ -14,7 +15,7 @@ fun BiometricLogin(
     onFailure: () -> Unit
 ) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity ?: return  // Must be FragmentActivity
+    val activity = context as? FragmentActivity ?: return
     val executor: Executor = ContextCompat.getMainExecutor(activity)
 
     val biometricPrompt = BiometricPrompt(

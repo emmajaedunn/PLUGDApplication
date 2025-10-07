@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "users")
 data class UserEntity(
-    @PrimaryKey var userId: String = "",  // Default values needed
+    @PrimaryKey var userId: String = "",
     var name: String = "",
     var username: String = "",
     var email: String = "",
-    var password: String? = "" // stored locally for offline login
+    var password: String? = ""
 )

@@ -12,7 +12,6 @@ data class UserProfileEntity(
     var bio: String? = null,
     var location: String? = null,
     var gender: String? = null,
-    var role: String? = "User",
     var followersCount: Int = 0,
     var notificationsEnabled: Boolean = true,
     var darkModeEnabled: Boolean = false,

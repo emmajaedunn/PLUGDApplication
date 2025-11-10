@@ -2,8 +2,15 @@
     <string name="app_name" translatable="false">PLUGD</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
-    <string name="role_selection">Role Selection</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="web_client_id" translatable="false">932853900157-3i0o6nmelmbksvtojsd3jor9gltga2si.apps.googleusercontent.com</string>
+    <string name="maps_api_key" translatable="false">AIzaSyCNR_70bFeAZMeRtOWOUb4Cza_Zn35x7Es</string>
+    <string name="settings_title">Settings</string>
+    <string name="change_password">Change Password</string>
+    <string name="language_preferences">Language Preferences</string>
+    <string name="save_and_go_back">Save and Go Back</string>
+    <string name="select_language">Select App Language</string>
+    <string name="enable_dark_mode">Enable dark mode</string>
+    <string name="notifications">Enable notifications</string>
 </resources>

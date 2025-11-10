@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Plugd</string>
+    <string name="settings_title">Instellings</string>
+    <string name="change_password">Verander Wagwoord</string>
+    <string name="language_preferences">Taalvoorkeure</string>
+    <string name="save_and_go_back">Stoor en Gaan Terug</string>
+    <string name="select_language">Kies Toepassingstaal</string>
+    <string name="enable_dark_mode">Aktiveer donker modus</string>
+    <string name="notifications">Aktiveer kennisgewings</string>
+</resources>

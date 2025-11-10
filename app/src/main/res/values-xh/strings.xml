@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login">Ngena</string>
-    <string name="register">Bhalisa</string>
-    <string name="role_selection">Ukhetho lwendima</string>
-    <string name="email">Imeyile</string>
-    <string name="password">Igama lokugqitha</string>
+    <string name="app_name">Plugd</string>
+    <string name="settings_title">Iisetingi</string>
+    <string name="change_password">Tshintsha iPaswedi</string>
+    <string name="language_preferences">Ulwimi Olukhethwayo</string>
+    <string name="save_and_go_back">Gcina uze ubuye umva</string>
+    <string name="select_language">Khetha Ulwimi Losetyenziso</string>
+    <string name="enable_dark_mode">Vula imo emnyama</string>
+    <string name="notifications">Vula izaziso</string>
 </resources>

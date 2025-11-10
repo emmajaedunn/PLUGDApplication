@@ -6,18 +6,20 @@ object Routes {
     const val HOME = "home_screen"
     const val RESET_PASSWORD = "reset_password"
     const val ABOUT_SUPPORT = "about_support"
-    const val ACTIVITY = "activity_screen"
 
     const val ONBOARDING = "onboarding"
-
-    const val ROLE = "role_selection"
+    const val ACTIVITY_FEED = "activity_screen"
     const val ADD = "add_screen"
 
     const val EVENT_DETAIL = "event_detail/{eventId}"
 
-    const val PROFILE = "profile/{uid}"
+    const val PROFILE = "profile_screen"
+
+    const val USER_PROFILE = "userProfile/{userId}"
 
     const val SETTINGS = "settings"
+
+    const val EDIT_PROFILE = "edit_profile" // Added this line
 
     const val SETTINGS_COMMUNITY = "settings_community"
 
@@ -31,9 +33,8 @@ object Routes {
 
     const val PLUG_DETAILS = "plug_details"
 
-
     const val CHANGE_PASSWORD = "change_password"
 
-
+    const val CHANGE_LANGUAGE = "change_language"
 
 }

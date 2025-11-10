@@ -1,32 +1,15 @@
 package com.example.plugd
 
 import android.app.Application
-import androidx.room.Room
-import com.example.plugd.data.localRoom.database.AppDatabase
+import com.google.android.libraries.places.api.Places
 import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.FirebaseFirestore
 
 class App : Application() {
-
-    companion object {
-        lateinit var database: AppDatabase
-    }
-
     override fun onCreate() {
         super.onCreate()
-
-
-        // Initialize Room database
-        database = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "plugd_db"
-        ).build()
-
-        // Initialize Firebase
         FirebaseApp.initializeApp(this)
-
-        val db = FirebaseFirestore.getInstance()
-
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, getString(R.string.maps_api_key))
+        }
     }
 }

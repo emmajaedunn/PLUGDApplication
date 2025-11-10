@@ -19,6 +19,11 @@ import com.example.plugd.ui.auth.AuthViewModel
 import com.example.plugd.ui.auth.GoogleAuthUiClient
 import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.theme.Telegraf
+import com.example.plugd.ui.screens.auth.BiometricLogin
+import com.example.plugd.ui.utils.EncryptedPreferencesManager
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -32,10 +37,10 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val authState by viewModel.authState.collectAsState()
-    var message by remember { mutableStateOf("") }
-
-    // JUST ADDED
     val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
     LaunchedEffect(authState) {
         authState?.let { result ->
@@ -49,11 +54,17 @@ fun LoginScreen(
         }
     }
 
-    // Observe auth state
-    LaunchedEffect(authState) {
-        authState?.let { result ->
-            result.onSuccess { onLoginSuccess() }
-            result.onFailure { e -> errorMessage = e.message ?: "Login failed" }
+    // Check biometric login automatically
+    val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
+        .collectAsState(initial = false)
+
+    LaunchedEffect(biometricEnabled) {
+        if (biometricEnabled) {
+            val (savedEmail, savedPassword) =
+                EncryptedPreferencesManager.getCredentials(context, currentUserId).first()
+            if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
+                viewModel.login(savedEmail, savedPassword)
+            }
         }
     }
 
@@ -123,6 +134,7 @@ fun LoginScreen(
                     email.isBlank() || password.isBlank() -> {
                         errorMessage = "Please fill in all fields"
                     }
+
                     else -> {
                         errorMessage = "" // Clear previous error
                         viewModel.login(email, password)
@@ -172,6 +184,38 @@ fun LoginScreen(
         if (errorMessage.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        val scope = rememberCoroutineScope()
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+
+        val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
+            .collectAsState(initial = false)
+
+        // Biometric login button
+        if (biometricEnabled) {
+            Spacer(modifier = Modifier.height(16.dp))
+            BiometricLogin(
+                title = "Login with Biometrics",
+                canAuthenticate = true,
+                onAuthSuccess = {
+                    scope.launch {
+                        val (savedEmail, savedPassword) =
+                            EncryptedPreferencesManager.getCredentials(context, currentUserId).first()
+                        if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
+                            viewModel.login(savedEmail, savedPassword)
+                        }
+                    }
+                },
+                onAuthFailure = { /* fallback to manual login */ }
+            )
+        }
+
+        if (errorMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(errorMessage, color = MaterialTheme.colorScheme.error)
         }
     }
 }

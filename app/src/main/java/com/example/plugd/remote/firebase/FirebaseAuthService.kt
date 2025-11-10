@@ -35,6 +35,6 @@ class FirebaseAuthService {
     }
 
     fun logout() {
-        FirebaseAuth.getInstance().signOut()
+        auth.signOut()
     }
 }

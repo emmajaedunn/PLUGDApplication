@@ -25,12 +25,51 @@ fun MainScreenWithBottomNav(
         bottomBar = {
             NavigationBar(containerColor = Color.Transparent) {
                 items.forEach { item ->
-                    val selected = when (item) {
+                    // Corrected 'selected' logic to do a simple string comparison
+                    val selected = currentRoute == item.route
+
+                    /*val selected = when (item) {
                         is BottomNavBar.Profile -> currentRoute?.startsWith("profile/") == true
                         else -> currentRoute == item.route
-                    }
+                    }*/
 
+                    // ADDED
                     NavigationBarItem(
+                        icon = {
+                            if (item.iconVector != null) {
+                                Icon(item.iconVector, contentDescription = item.label)
+                            } else if (item.iconDrawable != null) {
+                                Icon(painter = painterResource(id = item.iconDrawable), contentDescription = item.label)
+                            }
+                        },
+                        label = { Text(item.label) },
+                        selected = selected,
+                        onClick = {
+                            if (!selected) {
+
+                                /*val routeToNavigate = when (item) {
+                                    is BottomNavBar.Profile -> "profile/$loggedInUserId"
+                                    else -> item.route
+                                }*/
+
+                                //old - navController.navigate(routeToNavigate) {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            indicatorColor = Color.Transparent
+                        )
+                    )
+
+                    /* working NavigationBarItem(
                         icon = {
                             when {
                                 item.iconVector != null -> Icon(
@@ -64,7 +103,7 @@ fun MainScreenWithBottomNav(
                         colors = NavigationBarItemDefaults.colors(
                             indicatorColor = Color.Transparent
                         )
-                    )
+                    )*/
                 }
             }
         }

@@ -16,7 +16,7 @@ fun Message.toMessageEntity(): MessageEntity = MessageEntity(
     messageId = id,
     channelId = channelId,
     senderId = senderId,
-    senderName = senderName,
+    senderName = senderName ?: "",
     content = content,
     timestamp = timestamp
 )

@@ -13,4 +13,10 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profiles WHERE userId = :userId LIMIT 1")
     suspend fun getProfileById(userId: String): UserProfileEntity?
+
+    @Query("DELETE FROM user_profiles")
+    suspend fun clearAllProfiles()
+
+    @Query("DELETE FROM user_profiles")
+    suspend fun clearTable()
 }

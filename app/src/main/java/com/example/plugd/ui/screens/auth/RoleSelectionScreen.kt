@@ -1,4 +1,4 @@
-package com.example.plugd.ui.screens.auth
+/*package com.example.plugd.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -78,4 +78,4 @@ fun RoleButton(text: String, onClick: () -> Unit) {
     ) {
         Text(text = text, style = MaterialTheme.typography.titleMedium.copy(fontFamily = Telegraf))
     }
-}
+}*/

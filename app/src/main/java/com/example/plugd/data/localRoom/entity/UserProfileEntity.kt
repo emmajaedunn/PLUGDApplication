@@ -2,6 +2,7 @@ package com.example.plugd.data.localRoom.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+
 @Entity(tableName = "user_profiles")
 data class UserProfileEntity(
     @PrimaryKey var userId: String = "",
@@ -12,7 +13,10 @@ data class UserProfileEntity(
     var bio: String? = null,
     var location: String? = null,
     var gender: String? = null,
+    var socials: String? = null,
+    var profilePictureUrl: String? = null,
     var followersCount: Int = 0,
+    var followingCount: Int = 0,
     var notificationsEnabled: Boolean = true,
     var darkModeEnabled: Boolean = false,
     var biometricEnabled: Boolean = false,

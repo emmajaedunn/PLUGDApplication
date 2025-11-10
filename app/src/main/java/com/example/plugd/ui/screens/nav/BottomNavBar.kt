@@ -17,7 +17,7 @@ sealed class BottomNavBar(
     object Community : BottomNavBar("community_screen", "Community", iconDrawable = R.drawable.ic_channel)
     object Add : BottomNavBar("add_screen", "Add", iconVector = Icons.Default.Add)
     object Activity : BottomNavBar("activity_screen", "Activity", iconDrawable = R.drawable.ic_activity)
-    object Profile : BottomNavBar("profile/{uid}", "Profile", iconVector = Icons.Default.Person)
+    object Profile : BottomNavBar("profile_screen", "Profile", iconVector = Icons.Default.Person)
 
     companion object {
         val items = listOf(Home, Community, Add, Activity, Profile)

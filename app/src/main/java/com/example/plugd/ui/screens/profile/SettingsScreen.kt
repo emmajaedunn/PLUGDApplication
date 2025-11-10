@@ -1,5 +1,6 @@
 package com.example.plugd.ui.screens.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,11 +12,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.nav.SettingsTopBar
 import com.example.plugd.ui.utils.NotificationHelper
 import com.example.plugd.viewmodels.ProfileViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.example.plugd.ui.screens.auth.BiometricLogin
+import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.example.plugd.ui.utils.EncryptedPreferencesManager
+import kotlinx.coroutines.launch
+import com.example.plugd.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,22 +32,36 @@ fun SettingsScreen(
     navController: NavHostController,
     profileViewModel: ProfileViewModel = viewModel(),
     onSignOut: () -> Unit = {},
-    onDeleteAccount: () -> Unit = {}
+    onDeleteAccount: () -> Unit = {},
+    isDarkMode: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit
+
 ) {
     val userProfile by profileViewModel.profile.collectAsState()
-
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    Text(text = stringResource(R.string.language_preferences))
+
     val notificationHelper = remember { NotificationHelper(context) }
     var notificationsEnabled by remember { mutableStateOf(notificationHelper.isNotificationsEnabled()) }
+
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
     var editingField by remember { mutableStateOf<String?>(null) }
     var editBuffer by remember { mutableStateOf("") }
 
+    val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
+        .collectAsState(initial = false)
+    var biometricToggleState by remember { mutableStateOf(biometricEnabled) }
     var showBiometricPrompt by remember { mutableStateOf(false) }
-    var biometricEnabled by remember { mutableStateOf(userProfile?.biometricEnabled ?: false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var enteredPassword by remember { mutableStateOf("") }
 
-    // Load profile on enter
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+    // Keep toggle in sync with stored preference
+    LaunchedEffect(biometricEnabled) {
+        biometricToggleState = biometricEnabled
+    }
 
     LaunchedEffect(Unit) {
         profileViewModel.loadProfile()
@@ -77,8 +100,12 @@ fun SettingsScreen(
                 }
             }
 
-            SettingsItem(label = "Password", value = "********", actionText = "Reset") {
-                // TODO: implement Firebase password reset
+            SettingsItem(
+                label = "Password",
+                value = "********",
+                actionText = "Reset"
+            ) {
+                navController.navigate(Routes.CHANGE_PASSWORD)
             }
 
             Spacer(modifier = Modifier.height(1.dp))
@@ -101,32 +128,84 @@ fun SettingsScreen(
             SettingsToggle(
                 label = "App Theme",
                 subtitle = "Enable dark mode",
-                checked = false,
-                onCheckedChange = { /* TODO: theme toggle */ }
+                checked = isDarkMode,
+                onCheckedChange = { onToggleDarkMode(it) }
             )
 
-            // Biometric toggle
+            // Biometric login
             SettingsToggle(
                 label = "Biometric Authentication",
-                subtitle = "Enable facial recognition",
-                checked = biometricEnabled,
-                onCheckedChange = { requested ->
-                    if (requested) {
-                        showBiometricPrompt = true
-                    } else {
-                        biometricEnabled = false
-                        profileViewModel.updateProfileField("biometricEnabled", "false")
+                subtitle = "Enable fingerprint or face login",
+                checked = biometricToggleState,
+                onCheckedChange = { enabled ->
+                    biometricToggleState = enabled
+                    if (enabled) showPasswordDialog = true
+                    else scope.launch {
+                        EncryptedPreferencesManager.clear(context, currentUserId)
+                        EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
                     }
                 }
             )
+
+            if (showBiometricPrompt) {
+                BiometricLogin(
+                    title = "Enable Biometric Login",
+                    canAuthenticate = true,
+                    onAuthSuccess = {
+                        scope.launch {
+                            val email = userProfile?.email.orEmpty()
+                            if (email.isNotEmpty() && enteredPassword.isNotEmpty()) {
+                                EncryptedPreferencesManager.saveCredentials(context, currentUserId, email, enteredPassword)
+                                EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, true)
+                            }
+                        }
+                        showBiometricPrompt = false
+                        biometricToggleState = true
+                        Toast.makeText(context, "Biometric login enabled!", Toast.LENGTH_SHORT).show()
+                    },
+                    onAuthFailure = {
+                        scope.launch {
+                            EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
+                        }
+                        showBiometricPrompt = false
+                        biometricToggleState = false
+                        Toast.makeText(context, "Biometric authentication failed.", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+
+            // Language Preferences
+            SettingsItem(
+                label = "Language Preferences",
+                value = "English",
+                actionText = "Change"
+            ) {
+                navController.navigate(Routes.CHANGE_LANGUAGE)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Sign Out
             Button(
-                onClick = onSignOut,
+                onClick = {
+                    scope.launch {
+                        // First, clear biometric and credentials
+                        EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
+                        EncryptedPreferencesManager.clear(context, currentUserId)
+
+                        // Then perform logout
+                        profileViewModel.logout {
+                            navController.navigate(Routes.REGISTER) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Sign Out") }
+            ) {
+                Text("Sign Out")
+            }
 
             // Delete Account
             OutlinedButton(
@@ -135,23 +214,6 @@ fun SettingsScreen(
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) { Text("Delete Account") }
         }
-    }
-
-    // --- Biometric Login ---
-    if (showBiometricPrompt) {
-        BiometricLogin(
-            title = "Confirm to enable Biometrics",
-            onSuccess = {
-                biometricEnabled = true
-                profileViewModel.updateProfileField("biometricEnabled", "true")
-                showBiometricPrompt = false
-            },
-            onFailure = {
-                biometricEnabled = false
-                profileViewModel.updateProfileField("biometricEnabled", "false")
-                showBiometricPrompt = false
-            }
-        )
     }
 
     // Edit field dialog
@@ -170,7 +232,11 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    profileViewModel.updateProfileField(field, editBuffer)
+                    // --- THIS IS THE FIX ---
+                    // We launch a coroutine to call the suspend function
+                    scope.launch {
+                        profileViewModel.updateProfileField(field, editBuffer)
+                    }
                     editingField = null
                 }) { Text("Save") }
             },
@@ -179,7 +245,13 @@ fun SettingsScreen(
             }
         )
     }
+
 }
+
+
+
+
+
 
 @Composable
 fun SettingsItem(

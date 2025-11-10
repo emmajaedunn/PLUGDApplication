@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import com.example.plugd.R
 
+// Light Mode
 private val LightColors = lightColorScheme(
     primary = Color(0xFFFF9800),
     onPrimary = Color.White,
@@ -24,6 +25,7 @@ private val LightColors = lightColorScheme(
 
 )
 
+// Dark Mode
 private val DarkColors = darkColorScheme(
     primary = Color(0xFFFF9800),
     onPrimary = Color.Black,
@@ -35,8 +37,7 @@ private val DarkColors = darkColorScheme(
     onSurface = Color.White
 )
 
-// Typography
-
+// TYPOGRAPHY
 // FontFamily definition
 val Telegraf = FontFamily(
     Font(R.font.telegraf_ultralight, FontWeight.W200), // UltraLight
@@ -60,6 +61,7 @@ private val AppTypography = Typography(
         fontSize = 14.sp
     )
 )
+
 // Shapes
 private val AppShapes = Shapes() // Default shapes
 

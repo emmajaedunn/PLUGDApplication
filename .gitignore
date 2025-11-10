@@ -1,3 +1,6 @@
+# =========================
+# Android Studio / Kotlin
+# =========================
 *.iml
 .gradle
 /local.properties
@@ -12,4 +15,50 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+/out/
+app/build/
+
+# Kotlin / Java compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# =========================
+# Node.js / Backend
+# =========================
+# Node modules
+plugd-backend/node_modules/
+
+# Environment variables
+plugd-backend/.env
+
+# Firebase service account
+plugd-backend/serviceAccountKey.json
+
+# Build / dist folders (if using transpilers or bundlers)
+plugd-backend/dist/
+plugd-backend/build/
+
+# Logs
+*.log
+plugd-backend/npm-debug.log*
+plugd-backend/yarn-debug.log*
+plugd-backend/yarn-error.log*
+
+# Optional npm / lock files (ignore if you want, or keep for deterministic installs)
+# plugd-backend/package-lock.json
+# plugd-backend/yarn.lock
+
+# =========================
+# OS / System files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Others
+# =========================
+# Backup files
+*~
+*.swp

@@ -1,6 +1,6 @@
-package com.example.plugd.model
+package com.example.plugd.remote.api.dto
 
-data class Activity(
+data class ActivityDto(
     val type: String = "",
     val fromUserId: String = "",
     val message: String = "",

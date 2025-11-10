@@ -1,8 +1,8 @@
 package com.example.plugd.viewmodels.factory
 
-import EventRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.plugd.data.repository.EventRepository
 import com.example.plugd.viewmodels.EventViewModel
 
 class EventViewModelFactory(

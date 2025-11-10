@@ -8,12 +8,16 @@ import java.util.UUID
 data class EventEntity(
     @PrimaryKey
     val eventId: String = "",
+    val userId: String = "",
     val name: String = "",
     val category: String = "",
     val description: String = "",
     val location: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val date: Long = 0L,
     val createdBy: String = "",
     val createdByName: String = "",
-    val supportDocs: String? = null
+    val supportDocs: String? = null,
+    val ownerUid: String? = null
 )

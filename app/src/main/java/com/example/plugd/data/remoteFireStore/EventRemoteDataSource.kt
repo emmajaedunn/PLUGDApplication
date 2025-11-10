@@ -8,7 +8,7 @@ class EventRemoteDataSource(private val firestore: FirebaseFirestore) {
     private val eventsCol = firestore.collection("events")
 
     suspend fun addEvent(event: EventEntity) {
-        eventsCol.document(event.eventId).set(event)
+        eventsCol.document(event.eventId).set(event).await()
     }
 
     suspend fun getEvents(): List<EventEntity> {

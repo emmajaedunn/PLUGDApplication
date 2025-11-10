@@ -94,7 +94,7 @@ fun PlugDetailsScreen(
                             style = MaterialTheme.typography.body1.copy(color = Color(0xFF1565C0)),
                             modifier = Modifier.clickable {
                                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    setDataAndType(Uri.parse(docUri), "*/*")
+                                    setDataAndType(Uri.parse(docUri),  "*/*")
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                 }
                                 context.startActivity(intent)
@@ -106,7 +106,6 @@ fun PlugDetailsScreen(
         }
     }
 }
-
 
 
 

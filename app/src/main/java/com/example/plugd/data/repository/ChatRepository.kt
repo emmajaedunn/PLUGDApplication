@@ -61,6 +61,10 @@ class ChatRepository(
         awaitClose { listener.remove() }
     }
 
+    suspend fun getLocalMessages(channelId: String): List<Message> {
+        return chatDao.getMessages(channelId).first().map { it.toMessage() }
+    }
+
     suspend fun getUserName(userId: String): String {
         val doc = db.collection("users").document(userId).get().await()
         // Fetch 'username' field instead of 'displayName'

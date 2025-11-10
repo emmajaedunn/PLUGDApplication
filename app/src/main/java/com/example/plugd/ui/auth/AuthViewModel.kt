@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plugd.data.localRoom.entity.UserEntity
 import com.example.plugd.data.repository.AuthRepository
+import com.example.plugd.data.repository.ProfileRepository
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,12 +58,5 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
                     onResult(false, task.exception?.message)
                 }
             }
-    }
-
-    fun logout(onComplete: () -> Unit) {
-        viewModelScope.launch {
-            repository.logout()
-            onComplete()
-        }
     }
 }

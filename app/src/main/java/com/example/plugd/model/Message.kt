@@ -8,7 +8,8 @@ data class Message(
     val channelId: String = "",
     val senderId: String = "",
     val senderName: String? = null,
-    val senderProfileUrl: String? = null, // <-- THE FIX
+    val senderProfileUrl: String? = null,
+
     val content: String = "",
     val timestamp: Long = System.currentTimeMillis(),
 

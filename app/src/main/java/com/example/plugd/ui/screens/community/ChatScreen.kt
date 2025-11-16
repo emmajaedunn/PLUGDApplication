@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -99,10 +100,8 @@ fun ChatScreen(
                     ChatMessageItem(
                         message = msg,
                         isCurrentUser = msg.senderId == currentUserId,
-                        currentUserPhoto = currentUserPhoto,
                         navController = navController,
                         onReact = { emoji ->
-                            // FIX: Use coroutineScope to call suspend function
                             coroutineScope.launch {
                                 viewModel.toggleReaction(channelId, msg.id, emoji)
                             }
@@ -149,7 +148,6 @@ fun ChatScreen(
 fun ChatMessageItem(
     message: Message,
     isCurrentUser: Boolean,
-    currentUserPhoto: Uri?,
     navController: NavController,
     onReact: (emoji: String) -> Unit,
     onReply: (Message) -> Unit
@@ -168,18 +166,17 @@ fun ChatMessageItem(
             .padding(vertical = 4.dp),
         horizontalArrangement = alignment
     ) {
-        if (!isCurrentUser) {
+        if (isCurrentUser) {
+            Spacer(modifier = Modifier.width(8.dp))
             Image(
-                painter = rememberAsyncImagePainter(model = message.senderProfileUrl ?: ""),
-                contentDescription = "User profile",
+                painter = rememberAsyncImagePainter(message.senderProfileUrl ?: ""),
+                contentDescription = "My profile",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
                     .background(Color.Gray)
-                    .clickable { navController.navigate(Routes.USER_PROFILE.replace("{userId}", message.senderId)) }
             )
-            Spacer(modifier = Modifier.width(8.dp))
         }
 
         Column(horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start) {
@@ -246,21 +243,51 @@ fun ChatMessageItem(
                 }
             }
 
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    emojis.forEach { e ->
-                        Text(
-                            text = e,
-                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                            modifier = Modifier.clickable {
-                                onReact(e)
-                                menuExpanded = false
-                            }
-                        )
+            val menuBackground = Color.White // light orange
+            val menuBorder = Color(0xFFFFB74D)     // slightly darker orange
+
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                modifier = Modifier,                // no extra background here
+                containerColor = menuBackground     // 👈 key line to kill the purple
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 1.dp)
+                ) {
+                    // Emojis row
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        emojis.forEach { e ->
+                            Text(
+                                text = e,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                modifier = Modifier.clickable {
+                                    onReact(e)
+                                    menuExpanded = false
+                                }
+                            )
+                        }
                     }
+
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Reply",
+                                color = Color(0xFF5D4037),
+                                fontWeight = FontWeight.Medium
+                            )
+                        },
+                        onClick = {
+                            onReply(message)
+                            menuExpanded = false
+                        }
+                    )
                 }
-                Divider()
-                DropdownMenuItem(text = { Text("Reply") }, onClick = { onReply(message); menuExpanded = false })
             }
 
             Text(
@@ -269,16 +296,6 @@ fun ChatMessageItem(
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.End,
                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-            )
-        }
-
-        if (isCurrentUser) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Image(
-                painter = rememberAsyncImagePainter(currentUserPhoto ?: ""),
-                contentDescription = "My profile",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.Gray)
             )
         }
     }

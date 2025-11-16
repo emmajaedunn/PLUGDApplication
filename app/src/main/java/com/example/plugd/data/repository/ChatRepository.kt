@@ -1,4 +1,4 @@
-package com.example.plugd.data.repository
+/*package com.example.plugd.data.repository
 
 import com.example.plugd.data.localRoom.dao.ChatDao
 import com.example.plugd.data.mappers.toMessage
@@ -111,4 +111,4 @@ class ChatRepository(
             chatDao.insertMessage(messageWithId.toMessageEntity())
         }
     }
-}
+}*/

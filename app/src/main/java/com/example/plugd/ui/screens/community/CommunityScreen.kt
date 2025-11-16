@@ -10,7 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.plugd.R
 import com.example.plugd.ui.screens.nav.CommunityTopBar
@@ -53,7 +56,7 @@ fun CommunityScreen(navController: NavHostController, viewModel: ChatViewModel, 
 
                 Text(
                     text = "All Communities",
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold, fontSize = 14.sp,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }

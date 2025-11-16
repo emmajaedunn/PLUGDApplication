@@ -1,6 +1,8 @@
 package com.example.plugd.ui.screens.nav
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,7 +22,6 @@ import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.auth.LoginScreen
 import com.example.plugd.ui.screens.auth.RegisterScreen
 import com.example.plugd.ui.screens.home.HomeScreen
-import com.example.plugd.ui.screens.home.FilterScreen
 import com.example.plugd.ui.screens.plug.AddPlugScreen
 import com.example.plugd.ui.screens.activity.ActivityFeedScreen
 import com.example.plugd.ui.screens.profile.ProfileScreen
@@ -34,9 +35,7 @@ import com.example.plugd.viewmodels.factory.ProfileViewModelFactory
 import com.example.plugd.viewmodels.factory.EventViewModelFactory
 import com.example.plugd.viewmodels.factory.ChatViewModelFactory
 import com.example.plugd.data.localRoom.database.AppDatabase
-import com.example.plugd.data.mappers.ActivityMappers
 import com.example.plugd.data.repository.AuthRepository
-import com.example.plugd.data.repository.ChatRepository
 import com.example.plugd.data.repository.ProfileRepository
 import com.example.plugd.remote.firebase.FirebaseAuthService
 import com.example.plugd.data.repository.ActivityRepository
@@ -45,9 +44,11 @@ import com.example.plugd.remote.api.ApiService
 import com.example.plugd.ui.auth.AuthViewModel
 import com.example.plugd.ui.auth.AuthViewModelFactory
 import com.example.plugd.ui.auth.GoogleAuthUiClient
+import com.example.plugd.ui.screens.activity.ActivityFilterScreen
 import com.example.plugd.ui.screens.auth.ForgotPassword
 import com.example.plugd.ui.screens.community.ChannelsSettingsPage
 import com.example.plugd.ui.screens.community.CommunitySettingsPage
+import com.example.plugd.ui.screens.home.HomeFilterScreen
 import com.example.plugd.ui.screens.plug.PlugDetailsScreen
 import com.example.plugd.ui.screens.profile.EditEventScreen
 import com.example.plugd.ui.screens.profile.EditProfileScreen
@@ -61,22 +62,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, onToggleDarkMode: (Boolean) -> Unit) {
     val context = LocalContext.current
     val navController = rememberNavController()
 
+    val auth = FirebaseAuth.getInstance()
+
     // Local DB
     val db = AppDatabase.getInstance(context)
     val loggedInUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
     val firestore = FirebaseFirestore.getInstance()
-
-    // --- Manual Retrofit + ApiService for ActivityRepository ---
-    val apiService = Retrofit.Builder()
-        .baseUrl("https://theplugdplatform.onrender.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(ApiService::class.java)
 
     val activityRepository = ActivityRepository(
         activityDao = db.activityDao(),
@@ -89,7 +86,6 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
         authService = FirebaseAuthService(),
         userDao = db.userDao()
     )
-    val chatRepository = ChatRepository(chatDao = db.chatDao())
 
     // The firestore parameter was missing from this line.
     val eventRepository = EventRepository(
@@ -105,7 +101,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
         factory = ProfileViewModelFactory(profileRepository, eventRepository)
     )
     val chatViewModel: ChatViewModel = viewModel(
-        factory = ChatViewModelFactory()
+        factory = ChatViewModelFactory(profileRepository)
     )
     val eventViewModel: EventViewModel = viewModel(
         factory = EventViewModelFactory(eventRepository)
@@ -134,8 +130,11 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
 
     NavHost(navController = navController, startDestination = startDestination) {
 
-        // --- Register Screen ---
         composable(Routes.REGISTER) {
+            LaunchedEffect(Unit) {
+                authViewModel.clearAuthState()
+            }
+
             RegisterScreen(
                 navController = navController,
                 viewModel = authViewModel,
@@ -147,6 +146,20 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 googleAuthClient = googleAuthClient
             )
         }
+
+        /* --- Register Screen ---
+        composable(Routes.REGISTER) {
+            RegisterScreen(
+                navController = navController,
+                viewModel = authViewModel,
+                onRegisterSuccess = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.REGISTER) { inclusive = true }
+                    }
+                },
+                googleAuthClient = googleAuthClient
+            )
+        }*/
 
         // --- Login Screen ---
         composable(Routes.LOGIN) {
@@ -187,38 +200,6 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 loggedInUserId = loggedInUserId
             )
         }
-
-
-
-
-
-
-        /* --- Home Screen ---
-        composable(Routes.HOME) {
-            MainScreenWithBottomNav(
-                navController = navController,
-                topBar = { HomeTopBar(navController) },
-                content = { padding ->
-                    HomeScreen(
-                        navController = navController,
-                        eventViewModel = eventViewModel,
-                        userId = loggedInUserId
-                    )
-                },
-                loggedInUserId = loggedInUserId
-            )
-        }*/
-
-
-
-
-
-
-
-
-
-
-
 
         // --- Community Screen ---
         composable(Routes.COMMUNITY) {
@@ -296,7 +277,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                         navController = navController,
                         profileViewModel = profileViewModel,
                         isDarkMode = isDarkMode,
-                        userId = null
+                        userId = null,
                     )
                 },
                 loggedInUserId = loggedInUserId,
@@ -327,58 +308,53 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
             )
         }
 
-        /*
-
-        // --- Profile Screen ---
-        composable("profile/{userId}") { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId")
-            MainScreenWithBottomNav(
+        /* --- User Profile (PLUD Details) ---
+        composable(
+            route = "userProfile/{userId}"
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserProfileScreen(
                 navController = navController,
-                topBar = { ProfileTopBar(navController) },
-                content = { padding ->
-                    ProfileScreen(
-                        navController = navController,
-                        profileViewModel = profileViewModel,
-                        viewedUserId = userId,
-                        isDarkMode = isDarkMode,
-                    )
-                },
-                loggedInUserId = loggedInUserId
-            )
-        }
-
-*/
-        /* CORRECT
-        // --- Profile Screen ---
-        composable(Routes.PROFILE) {
-            MainScreenWithBottomNav(
-                navController = navController,
-                topBar = { ProfileTopBar(navController) },
-                content = { padding ->
-                    ProfileScreen(navController = navController, profileViewModel = profileViewModel, isDarkMode = isDarkMode)
-                },
-                loggedInUserId = loggedInUserId
+                profileViewModel = profileViewModel, // or get from your DI
+                userId = userId
             )
         }*/
 
-        // --- Settings Screen (Profile) ---
+        // --- Settings Screen ---
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 navController = navController,
                 profileViewModel = profileViewModel,
                 onSignOut = {
-                    profileViewModel.logout {
-                        navController.navigate(Routes.REGISTER) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                    // 1) Sign out
+                    profileViewModel.logout()
+
+                    // 2) Navigate to auth entry (REGISTER) and clear back stack
+                    navController.navigate(Routes.REGISTER) {
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onDeleteAccount = { /* ... */ },
-                isDarkMode = isDarkMode,                  // Pass current state
-                onToggleDarkMode = onToggleDarkMode       // Pass toggle lambda
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = onToggleDarkMode
             )
         }
+
+        /* --- Settings Screen (Profile) ---
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                navController = navController,
+                profileViewModel = profileViewModel,
+                // --- THIS IS THE FIX ---
+                // The onSignOut lambda now ONLY calls logout and does not navigate.
+                onSignOut = {
+                    profileViewModel.logout()
+                },
+                onDeleteAccount = { /* ... */ },
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = onToggleDarkMode
+            )
+        }*/
 
         // EDIT EVENT NEW
         composable(
@@ -393,8 +369,11 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
             ForgotPassword(navController = navController, viewModel = authViewModel)
         }
 
-        // --- Filter Screen ---
-        composable(Routes.FILTER) { FilterScreen(navController = navController) }
+        // --- Home Filter Screen ---
+        composable(Routes.HOME_FILTER) { HomeFilterScreen(navController = navController) }
+
+        // --- Activity Filter Screen ---
+        composable(Routes.ACTIVITY_FILTER) { ActivityFilterScreen(navController = navController) }
 
         // --- About / Help ---
         composable(Routes.ABOUT_SUPPORT) { AboutHelpPage(navController = navController) }

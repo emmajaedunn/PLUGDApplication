@@ -37,6 +37,39 @@ class EventViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    // ✅ New: create event by delegating to repository.createEvent
+    fun createEvent(
+        name: String,
+        category: String,
+        description: String,
+        location: String,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        date: Long,
+        supportDocs: String? = null,
+        onSuccess: (() -> Unit)? = null,
+        onError: ((Throwable) -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.createEvent(
+                    name = name,
+                    category = category,
+                    description = description,
+                    location = location,
+                    latitude = latitude,
+                    longitude = longitude,
+                    date = date,
+                    supportDocs = supportDocs
+                )
+                onSuccess?.invoke()
+            } catch (e: Exception) {
+                Log.e("EventViewModel", "Error creating event: ${e.localizedMessage}")
+                onError?.invoke(e)
+            }
+        }
+    }
+
     fun addEvent(event: EventEntity) {
         viewModelScope.launch {
             try {

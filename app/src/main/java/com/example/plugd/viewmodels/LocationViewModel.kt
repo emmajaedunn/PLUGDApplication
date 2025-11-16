@@ -3,7 +3,7 @@ package com.example.plugd.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.plugd.data.repository.LocationRepository
+import com.example.plugd.remote.api.maps.LocationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch

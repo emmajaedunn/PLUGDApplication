@@ -1,4 +1,4 @@
-package com.example.plugd.data.repository
+package com.example.plugd.remote.api.maps
 
 import android.annotation.SuppressLint
 import android.content.Context

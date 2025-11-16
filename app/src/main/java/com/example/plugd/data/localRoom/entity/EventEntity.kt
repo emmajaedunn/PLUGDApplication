@@ -18,6 +18,7 @@ data class EventEntity(
     val date: Long = 0L,
     val createdBy: String = "",
     val createdByName: String = "",
+    val createdByUsername: String = "",
     val supportDocs: String? = null,
     val ownerUid: String? = null
 )

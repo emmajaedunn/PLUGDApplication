@@ -1,11 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Plugd</string>
+    <string name="login">Aanmeld</string>
+    <string name="register">Registreer</string>
+    <string name="email">E-pos</string>
+    <string name="password">Wagwoord</string>
     <string name="settings_title">Instellings</string>
     <string name="change_password">Verander Wagwoord</string>
     <string name="language_preferences">Taalvoorkeure</string>
-    <string name="save_and_go_back">Stoor en Gaan Terug</string>
+    <string name="save">Stoor</string>
     <string name="select_language">Kies Toepassingstaal</string>
+    <string name="app_theme">App Tema</string>
     <string name="enable_dark_mode">Aktiveer donker modus</string>
-    <string name="notifications">Aktiveer kennisgewings</string>
+    <string name="enable_biometric">Aktiveer vingerafdruk- of gesigaanmelding</string>
+    <string name="enable_biometric_login">Aktiveer biometriese aanmelding</string>
+    <string name="notifications">Kennisgewings</string>
+    <string name="enable_notifications">Aktiveer kennisgewings</string>
+    <string name="account_information">Rekeninginligting</string>
+    <string name="account_settings">Rekeninginstellings</string>
+    <string name="language_preferences_label">Taalvoorkeure</string>
+    <string name="language_current_english">Engels</string>
+    <string name="language_change_button">Verander</string>
+    <string name="sign_out">Teken uit</string>
+    <string name="delete_account">Vee Rekening Uit</string>
+    <string name="delete_account_confirm_title">Bevestig Skrapping</string>
+    <string name="delete_account_confirm_text">
+    Is jy seker jy wil jou rekening permanent uitvee? Al jou data sal verwyder word. Hierdie aksie kan nie ongedaan gemaak word nie.
+</string>
+    <string name="delete_account_confirm">Vee uit</string>
+    <string name="cancel">Kanselleer</string>
+    <string name="reset">Herstel</string>
+    <string name="biometric_authentication">Biometriese verifikasie</string>
+    <string name="edit">Wysig</string>
+    <string name="back">Terug</string>
+
+    <!-- About & Help -->
+    <string name="about_help_title">DIE PLUGD OOR &amp; HULP</string>
+
+    <string name="about_plugd_title">Oor PLUGD</string>
+    <string name="about_plugd_body">
+        PLUGD is jou eenstop-platform om die nuutste neigings, geleenthede en kreatiewe gemeenskappe te ontdek, te deel en mee te skakel. Ons wil tegnologie en kreatiwiteit oorbrug om gebruikers te help om idees makliker uit te druk en te ontdek.
+    </string>
+
+    <string name="support_plugd_title">Hulp by PLUGD</string>
+    <string name="support_plugd_intro">Het jy hulp nodig of terugvoer? Ons is hier om te help!</string>
+
+    <string name="support_plugd_email">📧 E-pos: support@plugd.app</string>
+    <string name="support_plugd_website">🌐 Webtuiste: www.plugd.app</string>
+    <string name="support_plugd_phone">☎️ Foon: +27 (76) 151 6218</string>
+    <string name="support_plugd_socials">📱 Volg ons: @plugd_app op Instagram &amp; X</string>
+
+    <string name="app_version_label">App: Weergawe 1.0.0</string>
+
 </resources>

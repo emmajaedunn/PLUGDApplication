@@ -9,8 +9,48 @@
     <string name="settings_title">Settings</string>
     <string name="change_password">Change Password</string>
     <string name="language_preferences">Language Preferences</string>
-    <string name="save_and_go_back">Save and Go Back</string>
+    <string name="save">Save</string>
     <string name="select_language">Select App Language</string>
+    <string name="app_theme">App Theme</string>
     <string name="enable_dark_mode">Enable dark mode</string>
-    <string name="notifications">Enable notifications</string>
+    <string name="biometric_authentication">Biometric Authentication</string>
+    <string name="enable_biometric">Enable fingerprint or face login"</string>
+    <string name="enable_biometric_login">Enable biometric login"</string>
+    <string name="notifications">Notifications</string>
+    <string name="enable_notifications">Enable notifications</string>
+    <string name="account_information">Account Information</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="language_preferences_label">Language Preferences</string>
+    <string name="language_current_english">English</string>
+    <string name="language_change_button">Change</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_confirm_title">Confirm Deletion</string>
+    <string name="delete_account_confirm_text">
+    Are you sure you want to permanently delete your account? All of your data will be removed. This action cannot be undone.</string>
+    <string name="delete_account_confirm">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="reset">Reset</string>
+    <string name="edit">Edit</string>
+    <string name="back">Back</string>
+
+    <!-- About & Help -->
+    <string name="about_help_title">THE PLUGD ABOUT &amp; HELP</string>
+
+    <string name="about_plugd_title">About PLUGD</string>
+    <string name="about_plugd_body">
+        PLUGD is your one-stop platform for discovering, sharing, and connecting with the latest trends, events, and creative communities. We aim to bridge technology and creativity to help users express and discover ideas more easily.
+    </string>
+
+    <string name="support_plugd_title">Support at PLUGD</string>
+    <string name="support_plugd_intro">Need help or have feedback? We\'re here for you!</string>
+
+    <!-- These could be marked translatable="false" if you never want to localise the address/URL -->
+    <string name="support_plugd_email">📧 Email: support@plugd.app</string>
+    <string name="support_plugd_website">🌐 Website: www.plugd.app</string>
+    <string name="support_plugd_phone">☎️ Phone: +27 (76) 151 6218</string>
+    <string name="support_plugd_socials">📱 Follow us: @plugd_app on Instagram &amp; X</string>
+
+    <string name="app_version_label">App: Version 1.0.0</string>
+
 </resources>

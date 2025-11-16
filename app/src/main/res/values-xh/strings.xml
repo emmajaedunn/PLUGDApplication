@@ -4,8 +4,50 @@
     <string name="settings_title">Iisetingi</string>
     <string name="change_password">Tshintsha iPaswedi</string>
     <string name="language_preferences">Ulwimi Olukhethwayo</string>
-    <string name="save_and_go_back">Gcina uze ubuye umva</string>
+    <string name="save">Gcina</string>
     <string name="select_language">Khetha Ulwimi Losetyenziso</string>
+    <string name="app_theme">Umxholo wosetyenziso</string>
     <string name="enable_dark_mode">Vula imo emnyama</string>
-    <string name="notifications">Vula izaziso</string>
+    <string name="enable_biometric">Yenza umnwe okanye ukungena ebusweni</string>
+    <string name="enable_biometric_login">Vula ukungena ngebhayometriki</string>
+    <string name="notifications">Izaziso</string>
+    <string name="enable_notifications">Vula izaziso</string>
+    <string name="account_information">Ulwazi lweakhawunti</string>
+    <string name="account_settings">Iisetingi ze-akhawunti</string>
+    <string name="language_preferences_label">Ulwimi Olukhethwayo</string>
+    <string name="language_current_english">IsiNgesi</string>
+    <string name="language_change_button">Guqula</string>
+    <string name="sign_out">Phuma</string>
+    <string name="delete_account">Cima iAkhawunti</string>
+    <string name="delete_account_confirm_title">Qinisekisa ukucinywa</string>
+    <string name="delete_account_confirm_text">Ngaba uqinisekile ukuba ufuna ukuyicima ngokusisigxina iakhawunti yakho? Yonke idatha yakho iya kususwa. Esi senzo asinakuphinda singenziwa.</string>
+    <string name="delete_account_confirm">Cima</string>
+    <string name="cancel">Rhoxisa</string>
+    <string name="login">Ngema</string>
+    <string name="register">Bhalisa</string>
+    <string name="email">I-imeyile</string>
+    <string name="password">Inombolo yokuvula</string>
+    <string name="reset">Phinda usete</string>
+    <string name="biometric_authentication">Uqinisekiso lwebhayometriki</string>
+    <string name="edit">Edit</string>
+    <string name="back">Emva</string>
+
+    <!-- About & Help -->
+    <string name="about_help_title">NGOKUPHATHA NANGONCEDO lwe PLUGD</string>
+
+    <string name="about_plugd_title">Malunga ne-PLUGD</string>
+    <string name="about_plugd_body">
+        I-PLUGD liqonga elinye lokufumana, ukwabelana nokunxibelelana neentsingiselo ezintsha, iziganeko kunye noluntu oluyilayo. Sijolise ekudibaniseni itekhnoloji nobuchule ukuze sincede abasebenzisi baziveze baze bafumane iingcinga ngokulula.
+    </string>
+
+    <string name="support_plugd_title">Inkxaso ye-PLUGD</string>
+    <string name="support_plugd_intro">Ufuna uncedo okanye ingxelo? Silapha ukukunceda!</string>
+
+    <string name="support_plugd_email">📧 I-imeyile: support@plugd.app</string>
+    <string name="support_plugd_website">🌐 Iwebhusayithi: www.plugd.app</string>
+    <string name="support_plugd_phone">☎️ Ifowuni: +27 (76) 151 6218</string>
+    <string name="support_plugd_socials">📱 Silandele: @plugd_app ku-Instagram &amp; X</string>
+
+    <string name="app_version_label">App: Inguqulelo 1.0.0</string>
+
 </resources>

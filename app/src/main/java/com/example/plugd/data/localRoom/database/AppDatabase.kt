@@ -16,8 +16,8 @@ import com.example.plugd.data.localRoom.entity.*
         MessageEntity::class,
         ActivityEntity::class
     ],
-    version = 16,
-    exportSchema = false
+    version = 20,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -6,4 +6,5 @@
     <color name="display_small">#000000</color>
     <color name="text_medium">#FF4E4B66</color>
     <color name="text_large">#FF4E4B66</color>
+    <color name="plugd_icon_background">#FFFFFF</color>
 </resources>

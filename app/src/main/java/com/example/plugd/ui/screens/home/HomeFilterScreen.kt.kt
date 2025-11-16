@@ -22,7 +22,7 @@ import com.example.plugd.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterScreen(navController: NavHostController) {
+fun HomeFilterScreen(navController: NavHostController) {
     var location by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var sortByLatest by remember { mutableStateOf(true) }
@@ -107,11 +107,61 @@ fun FilterScreen(navController: NavHostController) {
                 )
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
             // Apply Filters Button
-            Button(onClick = {
-                // Implement filter application logic here
-            }, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    // send values back to the previous screen (Home)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_location", location)
+
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_category", category)
+
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_sort_latest", sortByLatest)
+
+                    navController.popBackStack()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Apply Filters", fontWeight = FontWeight.SemiBold)
+            }
+
+            // Clear Filters Button – also sends cleared values back to Home
+            OutlinedButton(
+                onClick = {
+                    // reset local state
+                    location = ""
+                    category = ""
+                    sortByLatest = true
+
+                    // send cleared filters to Home
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_location", "")
+
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_category", "")
+
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("filter_sort_latest", true)
+
+                    // go back
+                    navController.popBackStack()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Clear Filters", fontWeight = FontWeight.SemiBold)
             }
         }
     }

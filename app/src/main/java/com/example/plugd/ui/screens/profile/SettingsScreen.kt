@@ -1,6 +1,7 @@
 package com.example.plugd.ui.screens.profile
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +21,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.plugd.ui.screens.auth.BiometricLogin
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.example.plugd.ui.utils.EncryptedPreferencesManager
 import kotlinx.coroutines.launch
@@ -45,6 +48,8 @@ fun SettingsScreen(
 
     val notificationHelper = remember { NotificationHelper(context) }
     var notificationsEnabled by remember { mutableStateOf(notificationHelper.isNotificationsEnabled()) }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
@@ -80,7 +85,10 @@ fun SettingsScreen(
         ) {
 
             // --- ACCOUNT INFO ---
-            Text("Account Information", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.account_information),
+                //"Account Information",
+                style = MaterialTheme.typography.titleMedium)
 
             val fields = listOf(
                 "username" to userProfile?.username.orEmpty(),
@@ -101,9 +109,9 @@ fun SettingsScreen(
             }
 
             SettingsItem(
-                label = "Password",
+                label = stringResource(R.string.password),
                 value = "********",
-                actionText = "Reset"
+                actionText = stringResource(R.string.reset)
             ) {
                 navController.navigate(Routes.CHANGE_PASSWORD)
             }
@@ -111,12 +119,15 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(1.dp))
 
             // --- ACCOUNT SETTINGS ---
-            Text("Account Settings", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.account_settings),
+                //"Account Settings",
+                style = MaterialTheme.typography.titleMedium)
 
             // Notifications
             SettingsToggle(
-                label = "Notifications",
-                subtitle = "Enable notifications",
+                label = stringResource(R.string.notifications),
+                subtitle = stringResource(R.string.enable_notifications),
                 checked = notificationsEnabled,
                 onCheckedChange = { checked ->
                     notificationsEnabled = checked
@@ -126,16 +137,16 @@ fun SettingsScreen(
 
             // Dark mode
             SettingsToggle(
-                label = "App Theme",
-                subtitle = "Enable dark mode",
+                label = stringResource(R.string.app_theme),
+                subtitle = stringResource(R.string.enable_dark_mode),
                 checked = isDarkMode,
                 onCheckedChange = { onToggleDarkMode(it) }
             )
 
             // Biometric login
             SettingsToggle(
-                label = "Biometric Authentication",
-                subtitle = "Enable fingerprint or face login",
+                label = stringResource(R.string.biometric_authentication),
+                subtitle = stringResource(R.string.enable_biometric),
                 checked = biometricToggleState,
                 onCheckedChange = { enabled ->
                     biometricToggleState = enabled
@@ -149,7 +160,7 @@ fun SettingsScreen(
 
             if (showBiometricPrompt) {
                 BiometricLogin(
-                    title = "Enable Biometric Login",
+                    title = stringResource(R.string.enable_biometric_login),
                     canAuthenticate = true,
                     onAuthSuccess = {
                         scope.launch {
@@ -176,43 +187,74 @@ fun SettingsScreen(
 
             // Language Preferences
             SettingsItem(
-                label = "Language Preferences",
-                value = "English",
-                actionText = "Change"
+                label = stringResource(R.string.language_preferences),
+                value = stringResource(R.string.language_current_english),
+                actionText = stringResource(R.string.language_change_button)
             ) {
                 navController.navigate(Routes.CHANGE_LANGUAGE)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // App Version
+            AppItem(
+                label = "App Version",
+                value = "Version 1.0.0"
+            )
+
+            Spacer(modifier = Modifier.height(1.dp))
 
             // Sign Out
             Button(
                 onClick = {
                     scope.launch {
-                        // First, clear biometric and credentials
                         EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
                         EncryptedPreferencesManager.clear(context, currentUserId)
 
-                        // Then perform logout
-                        profileViewModel.logout {
-                            navController.navigate(Routes.REGISTER) {
-                                popUpTo(0) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+                        onSignOut()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Sign Out")
+                Text(stringResource(R.string.sign_out))
             }
 
             // Delete Account
             OutlinedButton(
-                onClick = onDeleteAccount,
+                onClick = { showDeleteDialog = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-            ) { Text("Delete Account") }
+            ) {
+                Text(stringResource(R.string.delete_account))
+            }
+
+            // Add this AlertDialog somewhere inside the main Column of your screen
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = { Text(stringResource(R.string.delete_account_confirm_title)) },
+                    text = { Text(stringResource(R.string.delete_account_confirm_text)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                // This will call the function we are about to create
+                                profileViewModel.deleteAccount {
+                                    navController.navigate(Routes.REGISTER) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                                showDeleteDialog = false
+                            },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text(stringResource(R.string.delete_account_confirm))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -232,26 +274,20 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    // --- THIS IS THE FIX ---
                     // We launch a coroutine to call the suspend function
                     scope.launch {
                         profileViewModel.updateProfileField(field, editBuffer)
                     }
                     editingField = null
-                }) { Text("Save") }
+                }) { Text(stringResource(R.string.save))}
             },
             dismissButton = {
-                TextButton(onClick = { editingField = null }) { Text("Cancel") }
+                TextButton(onClick = { editingField = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
 
 }
-
-
-
-
-
 
 @Composable
 fun SettingsItem(
@@ -297,5 +333,26 @@ fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, on
             }
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+fun AppItem(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            if (value.isNotEmpty()) {
+                Text(value, style = MaterialTheme.typography.bodySmall)
+            }
+        }
     }
 }

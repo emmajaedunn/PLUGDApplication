@@ -34,11 +34,6 @@ import com.example.plugd.ui.utils.AppLanguageHelper
 fun LanguagePreferencesScreen(navController: NavController) {
     val context = LocalContext.current
 
-    // Intent to restart the app
-    val intent = Intent(context, MainActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    }
-
     val languages = listOf(
         "English" to "en",
         "Afrikaans" to "af",
@@ -74,10 +69,10 @@ fun LanguagePreferencesScreen(navController: NavController) {
             languages.forEach { (name, code) ->
                 Button(
                     onClick = {
-                        // 1. Set the new locale and persist it
+                        // 1️⃣ Set + persist locale (no restart)
                         AppLanguageHelper.setAppLocale(context, code)
-                        // 2. Restart the app to apply the change
-                        context.startActivity(intent)
+                        // 2️⃣ Just go back – UI will recompose with new strings
+                        navController.popBackStack()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -86,6 +81,7 @@ fun LanguagePreferencesScreen(navController: NavController) {
                     Text(name)
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

@@ -143,7 +143,13 @@ fun LoginScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Login")
+            Text(
+                text = "Login",
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.W500
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(5.dp))

@@ -34,6 +34,24 @@ fun RegisterScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val authState by viewModel.authState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authState) {
+        authState?.let { result ->
+            result.onSuccess {
+                Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                viewModel.clearAuthState()
+                onRegisterSuccess()
+            }
+            result.onFailure { e ->
+                Toast.makeText(context, e.message ?: "Registration failed", Toast.LENGTH_SHORT).show()
+                errorMessage = e.message ?: "Registration failed"
+                viewModel.clearAuthState()
+            }
+        }
+    }
+
+    /*val authState by viewModel.authState.collectAsState()
     var message by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -56,7 +74,7 @@ fun RegisterScreen(
             result.onSuccess { onRegisterSuccess() }
             result.onFailure { e -> errorMessage = e.message ?: "Registration failed" }
         }
-    }
+    }*/
 
     Column(
         modifier = Modifier
@@ -138,7 +156,13 @@ fun RegisterScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Register")
+            Text(
+                text = "Register",
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.W500
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

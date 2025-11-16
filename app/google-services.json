@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "932853900157",
+    "firebase_url": "https://plugdapp-default-rtdb.firebaseio.com",
     "project_id": "plugdapp",
     "storage_bucket": "plugdapp.firebasestorage.app"
   },

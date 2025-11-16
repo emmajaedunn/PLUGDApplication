@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -83,11 +84,11 @@ fun EditProfileScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            // THIS IS THE KEY CHANGE
-                            // We launch a coroutine to do the work...
                             scope.launch {
-                                // ...we wait for all the updates to finish...
+                                // Save bio
                                 profileViewModel.updateProfileField("bio", bio)
+
+                                // Save socials
                                 val newSocials = mapOf(
                                     "spotify" to spotifyLink,
                                     "appleMusic" to appleMusicLink,
@@ -96,11 +97,11 @@ fun EditProfileScreen(
                                 )
                                 profileViewModel.updateSocials(newSocials)
 
-                                photoUri?.let {
-                                    if (it.toString() != profileState?.profilePictureUrl) {
-                                        profileViewModel.uploadProfilePicture(it)
-                                    }
+                                // Save profile picture if one is selected
+                                photoUri?.let { uri ->
+                                    profileViewModel.uploadProfilePicture(uri)
                                 }
+
                                 navController.popBackStack()
                             }
                         }
@@ -185,7 +186,7 @@ fun EditProfileScreen(
                     Text(
                         "You haven't created any plugs yet.",
                         color = Color.Gray,
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(end = 20.dp)
                     )
                 }
             } else {

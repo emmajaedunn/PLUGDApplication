@@ -46,8 +46,10 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun clearAuthState() {
+        _authState.value = null
+    }
 
-    // JUST ADDED
     fun resetPassword(email: String, onResult: (Boolean, String?) -> Unit) {
         if (email.isBlank()) return
         FirebaseAuth.getInstance().sendPasswordResetEmail(email)

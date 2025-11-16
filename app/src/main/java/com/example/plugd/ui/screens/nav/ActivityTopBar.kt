@@ -29,7 +29,7 @@ fun ActivityTopBar(navController: NavHostController) {
         actions = {
             // Filter button on the right
             IconButton(onClick = {
-                navController.navigate("filter")
+                navController.navigate("activity_filter")
             }) {
                 Icon(
                     painter = painterResource(id = R.drawable.btn_filter),

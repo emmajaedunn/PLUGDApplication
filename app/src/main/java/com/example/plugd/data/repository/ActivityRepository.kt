@@ -10,6 +10,97 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
+class ActivityRepository(
+    private val activityDao: ActivityDao,
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
+
+    fun getActivitiesForUser(userId: String): Flow<List<ActivityEntity>> = callbackFlow {
+        // 1️⃣ Emit cached Room data once for THIS user
+        launch(Dispatchers.IO) {
+            val cached = activityDao.getActivitiesForUser(userId).first()
+            trySend(cached)
+        }
+
+        // 2️⃣ Live Firestore listener for THIS user
+        val ref = firestore.collection("activities")
+            .document(userId)
+            .collection("feed")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+
+        val listener = ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                // ViewModel .catch{} will see this
+                return@addSnapshotListener
+            }
+
+            if (snapshot == null) {
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+
+            val list = snapshot.documents.mapNotNull { doc ->
+                val type = doc.getString("type") ?: return@mapNotNull null
+                val fromUserId = doc.getString("fromUserId") ?: return@mapNotNull null
+                val fromUsername = doc.getString("fromUsername") ?: "Someone"
+                val message = doc.getString("message") ?: ""
+                val postId = doc.getString("postId")
+                val timestamp = doc.getLong("timestamp") ?: 0L
+
+                ActivityEntity(
+                    id = doc.id,
+                    ownerUserId = userId,        // 👈 owner of this feed
+                    fromUserId = fromUserId,
+                    fromUsername = fromUsername,
+                    message = message,
+                    postId = postId,
+                    type = type,
+                    timestamp = timestamp
+                )
+            }
+
+            trySend(list)
+
+            // cache in Room, only for this owner
+            launch(Dispatchers.IO) {
+                activityDao.replaceAll(list)
+            }
+        }
+
+        awaitClose { listener.remove() }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*package com.example.plugd.data.repository
+
+import com.example.plugd.data.localRoom.dao.ActivityDao
+import com.example.plugd.data.localRoom.entity.ActivityEntity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -76,4 +167,4 @@ class ActivityRepository(
             println("Error refreshing activities: ${e.message}")
         }
     }
-}
+}*/

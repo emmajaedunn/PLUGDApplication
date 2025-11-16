@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,11 +26,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.plugd.R
 import com.example.plugd.data.localRoom.entity.ActivityEntity
 import com.example.plugd.ui.screens.nav.ActivityTopBar
 import com.example.plugd.viewmodels.ActivityFeedViewModel
 import com.example.plugd.viewmodels.ProfileViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.DateFormat
 import java.util.Date
 
@@ -37,37 +40,83 @@ import java.util.Date
 fun ActivityFeedScreen(
     navController: NavHostController,
     activityViewModel: ActivityFeedViewModel,
-    profileViewModel: ProfileViewModel, // Added to handle follow actions
+    profileViewModel: ProfileViewModel,
 ) {
     val activities by activityViewModel.activities.collectAsState()
     val error by activityViewModel.error.collectAsState()
     val loggedInUserProfile by profileViewModel.profile.collectAsState()
 
+    // 🔹 Read filters from SavedStateHandle
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val savedStateHandle = navBackStackEntry?.savedStateHandle
+
+    val filterCategory by (
+            savedStateHandle
+                ?.getStateFlow("filter_category", "")
+                ?: MutableStateFlow("")
+            ).collectAsState()
+
+    val sortByLatest by (
+            savedStateHandle
+                ?.getStateFlow("filter_sort_latest", true)
+                ?: MutableStateFlow(true)
+            ).collectAsState()
+
+    // 🔹 Apply category + sort filtering
+    val filteredActivities = remember(activities, filterCategory, sortByLatest) {
+        val categoryFiltered = activities.filter { activity ->
+            when (filterCategory) {
+                "Friend requests" ->
+                    activity.type == "follow"
+
+                "Friend activity" ->
+                    activity.type == "new_plug"   // the type you use for follower plugs
+
+                "Community activity" ->
+                    activity.type == "reaction" || activity.type == "reply"
+
+                else -> true
+            }
+        }
+
+        if (sortByLatest) {
+            categoryFiltered.sortedByDescending { it.timestamp } // Newest
+        } else {
+            categoryFiltered.sortedBy { it.timestamp }           // Oldest
+        }
+    }
+
     Scaffold(
         topBar = { ActivityTopBar(navController = navController) }
     ) { innerPadding ->
         when {
-            // Error State
             error != null -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Error: $error", color = MaterialTheme.colorScheme.error)
                 }
             }
 
-            // Empty State
-            activities.isEmpty() -> {
+            filteredActivities.isEmpty() -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No activity yet", fontSize = 16.sp, color = Color.Gray)
+                    // Show message based on whether a filter is active
+                    val msg = if (filterCategory.isBlank())
+                        "No activity yet"
+                    else
+                        "No activity for this filter"
+                    Text(msg, fontSize = 16.sp, color = Color.Gray)
                 }
             }
 
-            // Content State
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -76,9 +125,11 @@ fun ActivityFeedScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(activities) { activity ->
-                        val isFollowing = loggedInUserProfile?.following?.contains(activity.fromUserId) == true
-                        val isOwnActivity = loggedInUserProfile?.userId == activity.fromUserId
+                    items(filteredActivities) { activity ->
+                        val isFollowing =
+                            loggedInUserProfile?.following?.contains(activity.fromUserId) == true
+                        val isOwnActivity =
+                            loggedInUserProfile?.userId == activity.fromUserId
 
                         ActivityItem(
                             activity = activity,
@@ -114,7 +165,6 @@ fun ActivityItem(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Profile Picture
         Image(
             painter = painterResource(id = R.drawable.profile_placeholder),
             contentDescription = "Profile Picture",
@@ -126,10 +176,7 @@ fun ActivityItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Message + Timestamp
         Column(modifier = Modifier.weight(1f)) {
-            // --- THIS IS THE FIX ---
-            // The message now uses the `fromUsername` field.
             val message = buildAnnotatedString {
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                     append(activity.fromUsername)
@@ -145,12 +192,14 @@ fun ActivityItem(
             )
         }
 
-        // Follow/Following Button
         if (activity.type == "follow" && !isOwnActivity) {
             Button(
                 onClick = { onFollowClick(activity.fromUserId) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFollowing) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                    containerColor = if (isFollowing)
+                        MaterialTheme.colorScheme.secondary
+                    else
+                        MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.height(32.dp)

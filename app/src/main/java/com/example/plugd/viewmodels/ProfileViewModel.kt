@@ -7,10 +7,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.data.repository.EventRepository
 import com.example.plugd.data.repository.ProfileRepository
+import com.example.plugd.model.SpotifyPlaylistEmbedded
 import com.example.plugd.model.UserProfile
+import com.example.plugd.remote.api.spotify.SpotifyPlaylist
+import com.example.plugd.remote.api.spotify.SpotifyRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileViewModel(
     private val profileRepository: ProfileRepository,
@@ -36,15 +41,23 @@ class ProfileViewModel(
 
     private val _targetUserId = MutableStateFlow<String?>(null)
 
+    // All events from repository (Room + API)
     private val allEvents: Flow<List<EventEntity>> = eventRepository.events
 
+    // Spotify
+    private val spotifyRepo = SpotifyRepository()
+
+    private val _playlists = MutableStateFlow<List<SpotifyPlaylist>>(emptyList())
+    val playlists: StateFlow<List<SpotifyPlaylist>> = _playlists.asStateFlow()
+
+    // Only show events belonging to this profile
     val userEvents: StateFlow<List<EventEntity>> =
         combine(allEvents, _targetUserId) { events, targetId ->
             val uid = targetId.orEmpty()
             events.filter { e -> (e.ownerUid == uid) || (e.userId == uid) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun loadProfile(userId: String? = null) {
+    /*fun loadProfile(userId: String? = null) {
         viewModelScope.launch {
             _loading.value = true
             try {
@@ -53,7 +66,7 @@ class ProfileViewModel(
                 _targetUserId.value = targetUserId
                 _isOwnProfile.value = (targetUserId == currentUserId)
 
-                // Observe the profile for real-time updates
+                // Real-time listener
                 profileRepository.observeRemoteProfile(targetUserId) { live ->
                     if (live != null) {
                         _profile.value = live
@@ -61,11 +74,75 @@ class ProfileViewModel(
                     }
                 }
 
-                // Initial fetch for quicker UI response
+                // Initial one-shot fetch
                 val remote = profileRepository.getRemoteProfile(targetUserId)
                 if (remote != null) {
                     _profile.value = remote
                     _isFollowing.value = remote.followers.contains(currentUserId)
+                }
+
+                refreshEvents()
+
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to load profile"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }*/
+
+    fun loadProfile(userId: String? = null) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val currentUser = auth.currentUser
+                android.util.Log.d(
+                    "ProfileViewModel",
+                    "loadProfile() – currentUserId = ${currentUser?.uid}"
+                )
+
+                // If not logged in, bail out cleanly
+                if (currentUser == null) {
+                    _error.value = "Not logged in"
+                    _loading.value = false
+                    return@launch
+                }
+
+                val currentUserId = currentUser.uid
+                val targetUserId = userId ?: currentUserId
+
+                android.util.Log.d(
+                    "ProfileViewModel",
+                    "loadProfile() – targetUserId = $targetUserId"
+                )
+
+                _targetUserId.value = targetUserId
+                _isOwnProfile.value = (targetUserId == currentUserId)
+
+                // 🔹 Real-time listener
+                profileRepository.observeRemoteProfile(targetUserId) { live ->
+                    android.util.Log.d(
+                        "ProfileViewModel",
+                        "observeRemoteProfile callback for $targetUserId, live = $live"
+                    )
+
+                    if (live != null) {
+                        _profile.value = live
+
+                        // recompute following state based on current user's "following" array
+                        viewModelScope.launch {
+                            val following = profileRepository.isFollowing(currentUserId, targetUserId)
+                            _isFollowing.value = following
+                        }
+                    }
+                }
+
+                // 🔹 Initial one-shot fetch
+                val remote = profileRepository.getRemoteProfile(targetUserId)
+                if (remote != null) {
+                    _profile.value = remote
+                    val following = profileRepository.isFollowing(currentUserId, targetUserId)
+                    _isFollowing.value = following
                 }
 
                 refreshEvents()
@@ -95,31 +172,49 @@ class ProfileViewModel(
                 val isCurrentlyFollowing = _isFollowing.value
 
                 if (isCurrentlyFollowing) {
-                    // Unfollow logic
+                    // 🔻 UNFOLLOW
                     profileRepository.removeFollowing(currentUserId, targetUserId)
                     profileRepository.removeFollower(targetUserId, currentUserId)
                 } else {
-                    // Fetch the current user's profile to get their username
-                    val currentUserProfile = profileRepository.getRemoteProfile(currentUserId)
-                    val fromUsername = currentUserProfile?.username ?: "Someone" // Fallback
+                    // 🔺 FOLLOW
 
-                    // Follow logic
-                    profileRepository.addFollowing(currentUserId, targetUserId)
-                    profileRepository.addFollower(targetUserId, currentUserId)
+                    // Get current user's profile for username
+                    val currentUserProfile = profileRepository.getRemoteProfile(currentUserId)
+                    val fromUsername = currentUserProfile?.username ?: "Someone"
+
+                    // Get target user's profile to store THEIR username in "following"
+                    val targetProfile = profileRepository.getRemoteProfile(targetUserId)
+                    val targetUsername = targetProfile?.username ?: ""
+
+                    // Write both sides
+                    profileRepository.addFollowing(
+                        currentUserId = currentUserId,
+                        targetUserId = targetUserId,
+                    )
+
+                    profileRepository.addFollower(
+                        targetUserId = targetUserId,
+                        currentUserId = currentUserId,
+                    )
+
+                    // Activity feed entry
                     profileRepository.addActivity(
                         userId = targetUserId,
                         type = "follow",
                         fromUserId = currentUserId,
-                        fromUsername = fromUsername, // Pass the username
+                        fromUsername = fromUsername,
                         message = "started following you"
                     )
                 }
 
-                // Manually refresh the profile state after the action to guarantee a UI update.
+                // 🔁 Refresh following state from source of truth
+                val nowFollowing = profileRepository.isFollowing(currentUserId, targetUserId)
+                _isFollowing.value = nowFollowing
+
+                // Optionally refresh viewed profile (for follower counts, etc.)
                 val updatedProfile = profileRepository.getRemoteProfile(targetUserId)
                 if (updatedProfile != null) {
                     _profile.value = updatedProfile
-                    _isFollowing.value = updatedProfile.followers.contains(currentUserId)
                 }
 
             } catch (e: Exception) {
@@ -138,9 +233,8 @@ class ProfileViewModel(
         }
     }
 
-    // --- THIS IS THE NEW FUNCTION ---
-    // Called by the EditProfileScreen to save social media links.
-    suspend fun updateSocials(socials: Map<String, String>) {
+    // ✅ Make this NON-suspend and use viewModelScope (your current version was double-async)
+    fun updateSocials(socials: Map<String, String>) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
@@ -151,29 +245,86 @@ class ProfileViewModel(
         }
     }
 
-    suspend fun uploadProfilePicture(photoUri: android.net.Uri) {
-        val userId = auth.currentUser?.uid ?: return
+    suspend fun uploadProfilePicture(photoUri: Uri) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _error.value = "No logged-in user while uploading profile picture"
+            Log.e("ProfileViewModel", "uploadProfilePicture: userId is null")
+            return
+        }
+
         try {
             profileRepository.uploadProfilePicture(userId, photoUri)
+            Log.d("ProfileViewModel", "Profile picture upload success")
         } catch (e: Exception) {
+            Log.e("ProfileViewModel", "Profile picture upload failed", e)
             _error.value = e.message ?: "Failed to upload profile picture"
         }
     }
 
-    fun logout(onComplete: () -> Unit) {
+    // 🎧 Spotify playlists
+    fun loadSpotifyPlaylists() {
         viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            try {
+                // 1) Fetch from Spotify API
+                val remote = spotifyRepo.fetchUserPlaylists()
+
+                // 2) Map to embedded model
+                val embedded = remote.map { pl ->
+                    SpotifyPlaylistEmbedded(
+                        id = pl.id,
+                        name = pl.name,
+                        imageUrl = pl.images.firstOrNull()?.url,
+                        ownerName = pl.owner.display_name ?: pl.owner.id,
+                        externalUrl = "https://open.spotify.com/playlist/${pl.id}"
+                    )
+                }
+
+                // 3) Save to Firestore
+                profileRepository.updateSpotifyPlaylists(userId, embedded)
+
+                // 4) Refresh profile from Firestore so UI picks it up
+                val refreshed = profileRepository.getRemoteProfile(userId)
+                _profile.value = refreshed
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = e.message ?: "Failed to sync Spotify"
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 FirebaseAuth.getInstance().signOut()
                 profileRepository.clearLocalCache()
-                _profile.value = null
-                onComplete()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Logout failed"
+                withContext(Dispatchers.Main) {
+                    _error.value = e.message ?: "Logout failed"
+                }
+            }
+        }
+    }
+
+    fun deleteAccount(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                // We will create this repository function in the next step
+                profileRepository.deleteAccount()
+
+                // Ensure navigation happens on the main thread after deletion
+                withContext(Dispatchers.Main) {
+                    onComplete()
+                }
+            } catch (e: Exception) {
+                _error.value = "Failed to delete account. Please try logging out and in again."
+                Log.e("ProfileViewModel", "Delete account failed", e)
             }
         }
     }
 }
-
 
 
 

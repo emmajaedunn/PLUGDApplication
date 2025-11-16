@@ -27,9 +27,19 @@ data class UserProfile(
     val tiktokUrl: String? = null,
     val instagramUrl: String? = null,
 
+    val spotifyPlaylists: List<SpotifyPlaylistEmbedded> = emptyList(),
+
     // Settings/preferences
     val notificationsEnabled: Boolean = true,
     val darkModeEnabled: Boolean = false,
     val biometricEnabled: Boolean = false,
     val pushEnabled: Boolean = true
+)
+
+data class SpotifyPlaylistEmbedded(
+    val id: String = "",
+    val name: String = "",
+    val imageUrl: String? = null,
+    val ownerName: String? = null,
+    val externalUrl: String? = null
 )

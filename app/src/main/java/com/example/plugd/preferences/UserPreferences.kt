@@ -1,4 +1,4 @@
-package com.example.plugd.preferences
+/*package com.example.plugd.preferences
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -20,4 +20,4 @@ class UserPreferences(context: Context) {
     suspend fun saveUsername(username: String) {
         dataStore.edit { it[USERNAME_KEY] = username }
     }
-}
+}*/

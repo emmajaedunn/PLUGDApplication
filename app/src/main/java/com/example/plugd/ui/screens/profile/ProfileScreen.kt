@@ -2,6 +2,8 @@ package com.example.plugd.ui.screens.profile
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,11 +31,15 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.plugd.R
 import com.example.plugd.data.localRoom.entity.EventEntity
+import com.example.plugd.model.SpotifyPlaylistEmbedded
 import com.example.plugd.model.UserProfile
+import com.example.plugd.remote.api.spotify.SpotifyPlaylist
+import com.example.plugd.remote.api.spotify.startSpotifyAuth
 import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.nav.ProfileTopBar
 import com.example.plugd.viewmodels.ProfileViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(
     profileViewModel: ProfileViewModel,
@@ -46,8 +53,18 @@ fun ProfileScreen(
     val isFollowing by profileViewModel.isFollowing.collectAsState()
     val userEvents by profileViewModel.userEvents.collectAsState()
 
+    /* Correct
     LaunchedEffect(userId) {
         profileViewModel.loadProfile(userId)
+    }*/
+
+    LaunchedEffect(userId) {
+        profileViewModel.loadProfile(userId)
+
+        // after loadProfile, check again if this is own profile
+        if (profileViewModel.isOwnProfile.value) {
+            profileViewModel.loadSpotifyPlaylists()
+        }
     }
 
     Scaffold(
@@ -57,7 +74,12 @@ fun ProfileScreen(
             } else {
                 OtherUserProfileTopBar(navController)
             }
-        }
+        },
+        bottomBar = {
+            // Bottom nav specific for this screen
+            NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
+            }
+        },
     ) { innerPadding ->
         if (loading && userProfile == null) {
             Box(modifier = Modifier
@@ -89,9 +111,31 @@ fun ProfileScreen(
                 )
 
                 BioCard(userProfile = userProfile)
-                FollowersSection(followers = userProfile?.followers)
-                FollowingSection(following = userProfile?.following)
+
+                FollowersSection(
+                    followers = userProfile?.followers
+                ) { followerId ->
+                    navController.navigate("userProfile/$followerId")
+                }
+
+                FollowingSection(
+                    following = userProfile?.following
+                ) { followingId ->
+                    navController.navigate("userProfile/$followingId")
+                }
+
                 SocialsSection(userProfile)
+
+                SpotifyPlaylistsSection(
+                    playlists = userProfile?.spotifyPlaylists.orEmpty(),
+                    showSyncButton = isOwnProfile && !userProfile?.spotifyPlaylists.isNullOrEmpty(),
+                    onSyncClick = { profileViewModel.loadSpotifyPlaylists() }
+                )
+
+                if (isOwnProfile && userProfile?.spotifyPlaylists.isNullOrEmpty()) {
+                    ConnectSpotifyCard()
+                }
+
                 UserEventsSection(
                     userEvents = userEvents,
                     navController = navController
@@ -133,14 +177,15 @@ fun ProfileHeader(
     onFollowClick: () -> Unit,
     onEditProfileClick: () -> Unit
 ) {
+    val photoUrl = userProfile.profilePictureUrl ?: userProfile.profileImageUrl
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // --- FIX #3: The Image composable now loads the URL ---
         Image(
             painter = rememberAsyncImagePainter(
-                model = userProfile.profilePictureUrl,
+                model = photoUrl,
                 placeholder = painterResource(id = R.drawable.profile_placeholder),
                 error = painterResource(id = R.drawable.profile_placeholder)
             ),
@@ -211,8 +256,12 @@ fun BioCard(userProfile: UserProfile?) {
 }
 
 @Composable
-fun FollowersSection(followers: List<String>?) {
+fun FollowersSection(
+    followers: List<String>?,
+    onUserClick: (String) -> Unit
+) {
     val followersCount = followers?.size ?: 0
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -220,18 +269,21 @@ fun FollowersSection(followers: List<String>?) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Followers ($followersCount)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
             if (!followers.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    followers.take(5).forEach { _ ->
+                    followers.take(10).forEach { followerId ->
                         Image(
                             painter = painterResource(id = R.drawable.profile_placeholder),
                             contentDescription = "Follower",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .padding(end = 8.dp)
+                                .clickable { onUserClick(followerId) }
+                                .padding(end = 1.dp)
                         )
                     }
                 }
@@ -240,10 +292,13 @@ fun FollowersSection(followers: List<String>?) {
     }
 }
 
-
 @Composable
-fun FollowingSection(following: List<String>?) {
+fun FollowingSection(
+    following: List<String>?,
+    onUserClick: (String) -> Unit
+) {
     val followingCount = following?.size ?: 0
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -251,18 +306,21 @@ fun FollowingSection(following: List<String>?) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Following ($followingCount)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
             if (!following.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    following.take(5).forEach { _ ->
+                    following.take(10).forEach { userId ->
                         Image(
                             painter = painterResource(id = R.drawable.profile_placeholder),
-                            contentDescription = "Following",
+                            contentDescription = "Following user",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .padding(end = 8.dp)
+                                .clickable { onUserClick(userId) }
+                                .padding(end = 1.dp)
                         )
                     }
                 }
@@ -270,7 +328,6 @@ fun FollowingSection(following: List<String>?) {
         }
     }
 }
-
 
 @Composable
 fun SocialsSection(userProfile: UserProfile?) {
@@ -296,8 +353,6 @@ fun SocialsSection(userProfile: UserProfile?) {
                 val tiktokUrl = socials["tiktok"]
                 val instagramUrl = socials["instagram"]
 
-                // --- THIS IS THE FIX ---
-                // The onClick now uses uriHandler.openUri
                 SocialIcon(
                     iconRes = R.drawable.ic_spotify,
                     desc = "Spotify",
@@ -334,6 +389,127 @@ fun SocialsSection(userProfile: UserProfile?) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ConnectSpotifyCard() {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1DB954)) // Spotify green vibe
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "Connect Spotify",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Text(
+                "Link your Spotify account to show your playlists on your PLUGD profile.",
+                fontSize = 13.sp,
+                color = Color.White.copy(alpha = 0.85f)
+            )
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = { startSpotifyAuth(context) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
+                Text("Connect", color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun SpotifyPlaylistsSection(
+    playlists: List<SpotifyPlaylistEmbedded>,
+    showSyncButton: Boolean,
+    onSyncClick: () -> Unit
+) {
+    if (playlists.isEmpty() && !showSyncButton) return
+
+    val uriHandler = LocalUriHandler.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Spotify Playlists", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+            if (showSyncButton) {
+                IconButton(onClick = onSyncClick) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        tint = Color.Black,
+                        modifier = Modifier.size(19.dp),
+                        contentDescription = "Sync Playlists"
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        playlists.forEach { pl ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF121212))
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    pl.imageUrl?.let { img ->
+                        Image(
+                            painter = coil.compose.rememberAsyncImagePainter(img),
+                            contentDescription = pl.name,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(Modifier.width(12.dp))
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(pl.name, color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            pl.ownerName.orEmpty(),
+                            color = Color.LightGray,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    pl.externalUrl?.let { url ->
+                        Text(
+                            "Open",
+                            fontSize = 12.sp,
+                            color = Color(0xFF1DB954),
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri(url) }
+                                .padding(start = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun SocialIcon(
     iconRes: Int,
@@ -341,14 +517,12 @@ fun SocialIcon(
     enabled: Boolean,
     onClick: () -> Unit
 ) {
-    // --- THIS IS THE FIX ---
-    // The IconButton now correctly uses the `onClick` and `enabled`
-    // parameters that are passed into it.
     IconButton(onClick = onClick, enabled = enabled) {
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = desc,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(90.dp),
+
         )
     }
 }
@@ -360,7 +534,7 @@ fun UserEventsSection(
 ) {
     Column {
         Text("PLUGS", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         if (userEvents.isNullOrEmpty()) {
             Text("No plugs yet", color = Color.Gray, fontSize = 12.sp)

@@ -2,6 +2,7 @@ package com.example.plugd.data.localRoom.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.plugd.model.SpotifyPlaylistEmbedded
 
 @Entity(tableName = "user_profiles")
 data class UserProfileEntity(
@@ -20,5 +21,6 @@ data class UserProfileEntity(
     var notificationsEnabled: Boolean = true,
     var darkModeEnabled: Boolean = false,
     var biometricEnabled: Boolean = false,
-    var pushEnabled: Boolean = true
+    var pushEnabled: Boolean = true,
+    var spotifyPlaylists: List<SpotifyPlaylistEmbedded> = emptyList()
 )

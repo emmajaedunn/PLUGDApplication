@@ -36,7 +36,8 @@ fun UserProfile.toUserProfileEntity(): UserProfileEntity {
         notificationsEnabled = this.notificationsEnabled,
         darkModeEnabled = this.darkModeEnabled,
         biometricEnabled = this.biometricEnabled,
-        pushEnabled = this.pushEnabled
+        pushEnabled = this.pushEnabled,
+        spotifyPlaylists = spotifyPlaylists
     )
 }
 
@@ -65,6 +66,7 @@ fun UserProfileEntity.toUserProfile(): UserProfile {
         darkModeEnabled = this.darkModeEnabled,
         biometricEnabled = this.biometricEnabled,
         pushEnabled = this.pushEnabled,
+        spotifyPlaylists = spotifyPlaylists,
         events = emptyList() // optional placeholder until events are loaded
     )
 }

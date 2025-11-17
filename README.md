@@ -8,9 +8,9 @@ Created by **Emma Jae Dunn**
 Student Number: **ST10301125**  
 Module: **Programming 3D - PROG7314**  
 
-**Youtube Demonstration Video:** (coming) 
+**Youtube Demonstration Video:** 
 
-**GitHub Link** https://github.com/emmajaedunn/ThePLUGDPlatform.git
+**GitHub Link** https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git
 
 ---
 
@@ -43,119 +43,85 @@ The primary goals of **The PLUGD Platform** are:
 
 ---
 
-## Features  
-- **Onboarding Flow** → Guides first-time users through app introduction.  
-- **Authentication** → Simple login/register screens.  
-- **Event Discovery Page** → Users can browse events, apply filters, and search.  
-- **Search Integration** → Search events, artists, or organizers directly from the **TopBar**.  
-- **Navigation**  
-  - **Bottom Navigation Bar**: Provides quick access to core sections.  
-  - **Top App Bar**: Transparent with search bar, logo, and filter/menu button.  
-  - **Back Button Handling**: Appears only when navigating into sub-screens (e.g., Filters, Settings).  
-- **Event Synchronization** → Repository pattern allows syncing events between remote API and local database.  
+## Key Features  
 
----
+#### 🔐 Authentication & User Security
+- Firebase Authentication (Email/Password)
+- Biometric Authentication (Fingerprint)
+- Secure credential storage with EncryptedSharedPreferences
+- Google Sign-in SSO
 
-## Screens  
+#### 📣 Notifications
+- Real-time push notifications via Firebase Cloud Messaging (FCM)
+- Daily reminder notifications (AlarmManager + BroadcastReceiver)
+- Settings-based notification permissions & toggles
 
-### 1. Onboarding  
-- Shown only on first app launch.  
-- Explains core features of PLUGD.  
+#### 🎭 Profile Hub
+- User profiles with bio, followers, and following
+- Upload profile picture (Firebase Storage)
+- Social + music platform links (Instagram, Apple Music, SoundCloud)
+- Spotify API integration to show recently played playlists
 
-### 2. Authentication  
-- **Login** and **Register** screens.
-- Uses Firebase authentication services
-- Minimal user input required (Name, Username, Email, Password).
-- Additional Google SSO option 
-- Additional details (e.g., Date of Birth, Account Type) captured later in the profile screen.  
+#### 👯 Social Features
+- Follow system (follow requests, notifications)
+- User profile hubs with bio, socials, Spotify integration
+- Edit profile with image upload
 
-### 3. Home (Discovery)  
-- Displays events with filters and search functionality.  
-- Updates in real-time
-- Provides filters for event discovery (not yet implemented)
-- View event details
- 
-### 4. Community 
-- Already created channels where users can join
-- Users can change their settings for all communities
-- Channels are a chat screen where anyone can send messages (real-time)
-- Users can also upload files and also react to messages with emojis 
+#### 📌 Event (PLUG) System
+- Create & edit events
+- Upload supporting documents
+- Full event details page (date, category, description, map location)
+- Google Maps API for location search
+- Search & advanced filtering system
 
-### 5. Add Plug  
-- Screen for adding your own event ("Plug").
-- Able to upload a supporting doc
-- Information needed: category, title, location, time etc. 
-- Accessible from the home screen navigation.  
+#### 💬 Community Channels & Messaging
+- Real-time group chats (Firestore)
+- Replies, media attachments, recations and interactions
+- Community Settings for push notifications
+- Offline caching using Room Database
 
-### 6. Profile 
-- Displays user profile with their username, location bio etc.
-- Shows the users followers (not yet implemented)
-- Shows the users music & social platforms (not yet implemented)
-- Upload profile picture (not yet implemented) 
-- Displays the events the users have created (not yet implemented) 
+#### 🌍 Language Support
+- English
+- Afrikaans
+- Xhosa
 
-### 7. Settings 
-- Accessible via the profile screens or any main screen
-- Edit, manage an update your information and preferences.
-- Can change your password.
-- Settings button/toggles for biometrics, notifcations, dark mode, langauge preference.
-- Able to delete your account
+Users can change language in Settings.
+
+#### 🌓 UI/UX Personalisation
+- Dark Mode / Light Mode toggle
+- Updated Material 3 theme and custom typography
+- Local preferences persistence (DataStore)
+
+#### 📡 Offline Persistence
+- Room local caching for: Activities, Events, User profiles, Messaging history 
 
 ---
 
 ## Architecture  
 The app follows **MVVM (Model-View-ViewModel)** with **Repository Pattern**:  
 
-### Authentication
-	•	Firebase Authentication
-	•	Handles register/login with Email & Password or Google Sign-In.
-	•	Gives you a uid for each user (this is your unique identity).
-
-### User Profiles
-	•	Where stored: API + Room (not Firestore).
-	•	Flow: On register → Create minimal UserEntity in API (with uid, name, username, email).
-	•	User can update extra info (bio, location, phone, etc) → API updates & Room caches it.
-	•	Reason: Profile is structured data, not real-time. Easier to keep in API.
-
-### Events
-	•	Where stored: API + Room (not Firestore).
-	•	Flow:
-	•	User creates an event → save to Room (offline) → sync to API when online.
-	•	Events list in Home screen pulls from Room, synced with API.
-	•	Reason: Events don’t need real-time speed. API is cleaner & controlled.
-	
-### Community Chat
-	•	Where stored: Firestore (with Firebase’s built-in offline support).
-	•	Flow:
-	•	Each message saved in Firestore collection (/chats/{roomId}/messages).
-	•	Firestore automatically syncs across devices in real-time.
-	•	Reason: Chats must be real-time → Firestore is designed for this.
-
-### Offline Support
-	•	Profiles & Events → RoomDB cache.
-	•	Chats → Firestore already has offline caching built-in (no need for Room).
-
-### Repository Layer Setup
-	•	AuthRepository → handles FirebaseAuth login/register.
-	•	ProfileRepository → API + Room sync for profiles.
-	•	EventRepository → API + Room sync for events.
-	•	ChatRepository → Firestore only (for chat).
+- **Firebase Firestore** for real-time data
+- **Room Database** for local caching
+- **Retrofit API layer** (prepared for future backend integrations)
+- **Jetpack Compose Navigation**
 
 ---
 
-## Technologies Used  
-- **Kotlin** (Primary language)
-- **Firebase** for authentication, firestore (database), cloud messaging service (real-time messaging) and firebase storage (storing files)
-- **Jetpack Compose (Material 3)** for UI (Screen and Components)
-- **Navigation Component (Compose)** for in-app navigation
-- **Repository** is the central data manager for events (fetching from local DB + remote API).
-- **ViewModel & LiveData/StateFlow** for state management  
-- **Room Database** (Local storage & Offline Mode) 
-- **Coroutines** for asynchronous operations  
+## Tech Stack  
 
+- **Language:** Kotlin
+- **UI:** Jetpack Compose (Material 3)
+- **Database:** Firebase Firestore, Room, DataStore
+- **Media:** Firebase Sorage
+- **REST API:** Spotify Web API & Retrofit 
+- **Maps & Location:** Google Maps & Places API
+- **Notifications:** Firebase Cloud Messaging, AlarmManager
+- **Authentication:** Firebase Auth + BiometricPrompt API
+	
 ---
 
 ## Project Structure  
+
 - **ui/** Composables, Screens, Navigation
 - **viewmodel/** ViewModels for managing UI state
 - **repository/** Handles data access (local DB + Firebase)
@@ -183,56 +149,6 @@ When designing The PLUGD Platform, the following principles were prioritized:
 - Screens include: Login, Register, Forgot Password, Home, Event Details, Add Plug (Event), Actvity (User feed), Profile, Settings, Community, Chat Screen, About/Support Page.  
 
 **Screenshots:**
-
-##### Onboarding Pages
-
-
-##### Regsiter Screen 
-
-
-##### Login Screen 
-
-
-##### Google SSO Screen 
-
-
-##### Forgot Password 
-
-
-##### Home/Discovery Screen
-
-
-##### Filter Pages (not yet implemented)
-
-
-##### Event Details Screen 
-
-
-##### Community Screen 
-
-
-##### Community Settings 
-
-
-##### Channel Chat Screen 
-
-
-##### Channel Settings 
-
-
-##### Add Plug (Event)
-
-
-##### Activity Screen (not yet implemented) 
-
-
-##### Profile Screen 
-
-
-##### Settings Screen 
-
-
-##### About/Support Page 
 
 ---
 
@@ -288,21 +204,21 @@ Key features include:
 	  
 ![GitHub Actions Workflow](images/github_actions.png)
 
-## Getting Started
-1. Clone the repository: git clone [https://github.com/yourusername/plugd-platform.git](https://github.com/emmajaedunn/ThePLUGDPlatform.git)
+## Installation and Setup 
+1. Clone the repository: git clone [https://github.com/emmajaedunn/ThePLUGDPlatform.git](https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git)
 2. Open the project in Android Studio.
-3. Configure Firebase and add google-services.json.
-4. Build and run the app on emulator or device.
+3. Add API Keys - Create a local secrets.properties file:
+- MAPS_API_KEY=""
+- SPOTIFY_CLIENT_ID=""
+- SPOTIFY_CLIENT_SECRET=""
+4. Configure Firebase and add google-services.json.
+5. Build and run the app on emulator or device.
 
-## Future Enhancements for the final POE submission:
-- Push notifications for real-time app updates.
-- Add biometric facial recognition.
-- Allow users to filter their search.
-- Users can follow friends and send requests - update on profile page.
-- Music & Social Platform Integration - profile page.
-- Add real-time notifcations for the event alerts.
-- Users can filter their searches with preferences.
-- Multi-language support - Afrikaans & Xhosa.
-- Dark mode support.
-- Social features: chat, comments, and likes
-- Integration with cloud functions for advanced backend features
+## Future Enhancements
+
+- **DM Private Messaging** - Add 1-on-1 chat with typing indicators, delivered/read receipts.
+- **Event Ticketing System** - QR code event entry, Ticket scanning for organisers.
+- **Monetisation** - Promotion of artists, Premium events, Featured posts, Paid opportunities
+- **AI Recommendations** - Artist suggestions, Event matching based on mood/genre
+- **Gamification** - User Badges & Achievements for activity, engagement, or verified artists.
+- **Advanced Moderation Tools** - Admin roles, Community analytics, Content flagging system

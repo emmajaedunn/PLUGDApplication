@@ -20,6 +20,7 @@ class GoogleAuthUiClient(
 ) {
     private val credentialManager = CredentialManager.create(context)
 
+    // Google sign-in SSO
     suspend fun signIn(): Result<GoogleIdTokenCredential> {
         return try {
             val googleIdOption = GetGoogleIdOption.Builder()
@@ -57,15 +58,18 @@ class GoogleAuthUiClient(
         }
     }
 
+    // Firebase sign-in with Google ID token
     suspend fun firebaseSignInWithGoogle(idToken: String): FirebaseUser? {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = auth.signInWithCredential(credential).await()
         return result.user
     }
 
+    // Sign out
     fun signOut() {
         auth.signOut()
     }
 
+    // Fetch current user
     fun getCurrentUser(): FirebaseUser? = auth.currentUser
 }

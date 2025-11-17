@@ -67,20 +67,17 @@ fun CommunitySettingsPage(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // --- NOTIFICATIONS ---
             Text("Notifications",
                 style = MaterialTheme.typography.titleMedium,
                 fontFamily = Telegraf,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
 
-            // 🔸 THIS controls channel/community message notifications
             SettingsToggle(
                 label = "Channel & community messages",
                 subtitle = "Push notifications when someone posts or replies",
                 checked = communityNotificationsEnabled && masterNotificationsEnabled,
                 onCheckedChange = { enabled ->
                     if (!masterNotificationsEnabled && enabled) {
-                        // Master is OFF – block and warn
                         Toast.makeText(
                             context,
                             "Turn on notifications in Settings > Account first.",
@@ -103,7 +100,6 @@ fun CommunitySettingsPage(navController: NavHostController) {
 
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
-            // --- COMMUNITY PREFERENCES ---
             Text("Community Preferences",
                 style = MaterialTheme.typography.titleMedium,
                 fontFamily = Telegraf,
@@ -125,7 +121,6 @@ fun CommunitySettingsPage(navController: NavHostController) {
 
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
-            // --- OTHER SETTINGS ---
             Text("Other Settings",
                 style = MaterialTheme.typography.titleMedium,
                 fontFamily = Telegraf,
@@ -135,7 +130,7 @@ fun CommunitySettingsPage(navController: NavHostController) {
                 label = "Community Privacy",
                 value = "Control who sees your activity"
             ) {
-                // In future you can navigate to a privacy screen
+
             }
         }
     }

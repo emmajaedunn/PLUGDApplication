@@ -46,7 +46,7 @@ fun ActivityFeedScreen(
     val error by activityViewModel.error.collectAsState()
     val loggedInUserProfile by profileViewModel.profile.collectAsState()
 
-    // 🔹 Read filters from SavedStateHandle
+    // Read filters from SavedStateHandle
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val savedStateHandle = navBackStackEntry?.savedStateHandle
 
@@ -62,7 +62,7 @@ fun ActivityFeedScreen(
                 ?: MutableStateFlow(true)
             ).collectAsState()
 
-    // 🔹 Apply category + sort filtering
+    // Apply category + sort filtering
     val filteredActivities = remember(activities, filterCategory, sortByLatest) {
         val categoryFiltered = activities.filter { activity ->
             when (filterCategory) {
@@ -70,7 +70,7 @@ fun ActivityFeedScreen(
                     activity.type == "follow"
 
                 "Friend activity" ->
-                    activity.type == "new_plug"   // the type you use for follower plugs
+                    activity.type == "new_plug"
 
                 "Community activity" ->
                     activity.type == "reaction" || activity.type == "reply"
@@ -80,9 +80,9 @@ fun ActivityFeedScreen(
         }
 
         if (sortByLatest) {
-            categoryFiltered.sortedByDescending { it.timestamp } // Newest
+            categoryFiltered.sortedByDescending { it.timestamp }
         } else {
-            categoryFiltered.sortedBy { it.timestamp }           // Oldest
+            categoryFiltered.sortedBy { it.timestamp }
         }
     }
 
@@ -108,7 +108,6 @@ fun ActivityFeedScreen(
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Show message based on whether a filter is active
                     val msg = if (filterCategory.isBlank())
                         "No activity yet"
                     else

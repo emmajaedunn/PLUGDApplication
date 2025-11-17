@@ -18,16 +18,15 @@ class NotificationHelper(private val context: Context) {
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     // Main notification toggle in Settings
-
     fun isNotificationsEnabled(): Boolean {
         return prefs().getBoolean("notifications_enabled", false)
     }
 
+    // Toggle notifications in Settings
     fun toggleNotifications(isEnabled: Boolean) {
         prefs().edit().putBoolean("notifications_enabled", isEnabled).apply()
 
         if (isEnabled) {
-            // Check permission for Android 13+
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ActivityCompat.checkSelfPermission(
                     context,
@@ -57,8 +56,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    // ---------- CHANNEL / COMMUNITY MESSAGE NOTIFICATIONS ----------
-
+    // Channel notifications toggle in Settings
     fun isChannelNotificationsEnabled(): Boolean {
         return prefs().getBoolean("channel_notifications_enabled", true)
     }
@@ -67,14 +65,13 @@ class NotificationHelper(private val context: Context) {
         prefs().edit().putBoolean("channel_notifications_enabled", enabled).apply()
     }
 
-    // ---------- IMMEDIATE + DAILY REMINDERS ----------
-
+    // Daily reminder notification
     private fun showImmediateReminder() {
         val intent = Intent(context, NotificationReceiver::class.java)
-        // Broadcast directly → NotificationReceiver will build the notif
         context.sendBroadcast(intent)
     }
 
+    // Schedule daily reminder
     private fun scheduleDailyNotification() {
         val intent = Intent(context, NotificationReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
@@ -88,7 +85,6 @@ class NotificationHelper(private val context: Context) {
 
         val intervalMillis = AlarmManager.INTERVAL_DAY
 
-        // First trigger: you can pick “now + a few seconds” or “tomorrow at X time”
         val triggerAtMillis = System.currentTimeMillis() + intervalMillis
 
         alarmManager.setInexactRepeating(
@@ -99,6 +95,7 @@ class NotificationHelper(private val context: Context) {
         )
     }
 
+    // Cancel daily reminder
     private fun cancelDailyNotification() {
         val intent = Intent(context, NotificationReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
@@ -111,6 +108,7 @@ class NotificationHelper(private val context: Context) {
         alarmManager.cancel(pendingIntent)
     }
 
+    // Notification channel ID
     companion object {
         const val MAIN_CHANNEL_ID = "plugd_main_channel"
         private const val DAILY_REMINDER_REQUEST_CODE = 1001

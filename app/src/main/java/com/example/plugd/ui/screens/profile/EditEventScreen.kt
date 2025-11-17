@@ -25,7 +25,7 @@ fun EditEventScreen(
     eventId: String,
     navController: NavController,
     profileViewModel: ProfileViewModel,
-    eventViewModel: EventViewModel // Kept for consistency, but profileViewModel is used for logic
+    eventViewModel: EventViewModel
 ) {
     // The source of truth for a user's own events is the ProfileViewModel
     val userEvents by profileViewModel.userEvents.collectAsState()

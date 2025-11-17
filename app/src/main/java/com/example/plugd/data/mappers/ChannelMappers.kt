@@ -4,11 +4,11 @@ import com.example.plugd.data.localRoom.entity.ChannelEntity
 import com.example.plugd.model.Channel
 
 fun ChannelEntity.toChannel(): Channel = Channel(
-    id = channelId,   // <- use channelId
+    id = channelId,
     name = name
 )
 
 fun Channel.toChannelEntity(): ChannelEntity = ChannelEntity(
-    channelId = id,   // <- map id to channelId
+    channelId = id,
     name = name
 )

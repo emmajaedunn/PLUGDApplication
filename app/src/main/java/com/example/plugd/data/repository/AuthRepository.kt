@@ -9,12 +9,12 @@ import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
     private val authService: FirebaseAuthService,
-    private val userDao: UserDao, // local cache
+    private val userDao: UserDao,
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
     private val usersCollection = firestore.collection("users")
 
-    /** Register user + create Firestore profile */
+    // Register user + create Firestore profile
     suspend fun register(name: String, username: String, email: String, password: String): UserEntity {
         val firebaseUser = authService.registerUser(email, password)
             ?: throw Exception("Firebase registration failed")
@@ -49,7 +49,7 @@ class AuthRepository(
         return userEntity
     }
 
-    /** Login user + fetch Firestore profile */
+    // Login user + fetch Firestore profile
     suspend fun login(email: String, password: String): UserEntity {
         val firebaseUser = authService.loginUser(email, password)
             ?: throw Exception("Firebase login failed")
@@ -62,6 +62,7 @@ class AuthRepository(
         return userEntity
     }
 
+    // Login with Google credential
     suspend fun loginWithCredential(credential: AuthCredential): UserEntity {
         val firebaseUser = authService.loginWithCredential(credential)
             ?: throw Exception("Firebase login failed")
@@ -82,6 +83,7 @@ class AuthRepository(
         return userEntity
     }
 
+    // Logout and clear local cache
     suspend fun logout(profileRepository: ProfileRepository? = null) {
         authService.logout()
         profileRepository?.clearLocalCache()

@@ -32,7 +32,6 @@ fun CommunityScreen(navController: NavHostController, viewModel: ChatViewModel, 
     Scaffold(
         topBar = { CommunityTopBar(navController = navController) },
         bottomBar = {
-            // Bottom nav specific for this screen
             NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
             }
         }

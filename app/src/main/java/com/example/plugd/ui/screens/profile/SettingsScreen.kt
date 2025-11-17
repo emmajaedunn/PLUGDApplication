@@ -178,7 +178,6 @@ fun SettingsScreen(
                     title = stringResource(R.string.enable_biometric_login),
                     canAuthenticate = true,
                     onAuthSuccess = {
-                        // now we *know* biometrics worked
                         EncryptedPreferencesManager.setBiometricEnabled(context, true)
 
                         showBiometricPrompt = false
@@ -219,9 +218,6 @@ fun SettingsScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        // ✅ Don't clear biometric prefs here
-                        // Leave EncryptedPreferencesManager as-is so login can use it
-
                         onSignOut()
                     }
                 },
@@ -243,7 +239,6 @@ fun SettingsScreen(
                     fontWeight = FontWeight.W500)
             }
 
-            // Add this AlertDialog somewhere inside the main Column of your screen
             if (showDeleteDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
@@ -293,18 +288,18 @@ fun SettingsScreen(
                     )
                 }
             },
-            // --- THIS IS THE FIX ---
+
             containerColor = Color.White,
             tonalElevation = 0.dp,
             confirmButton = {
                 TextButton(onClick = {
                     val email = userProfile?.email.orEmpty()
                     if (email.isNotEmpty() && enteredPassword.isNotEmpty()) {
-                        // 1) Just save credentials
+                        // Save credentials
                         EncryptedPreferencesManager.saveCredentials(context, email, enteredPassword)
 
                         showPasswordDialog = false
-                        showBiometricPrompt = true   // 2) Now show the biometric prompt
+                        showBiometricPrompt = true
                     }
                 }) {
                     Text(stringResource(R.string.save))
@@ -340,11 +335,8 @@ fun SettingsScreen(
                     ),
                 )
             },
-            // --- THIS IS THE FIX for the dialog color ---
-            // --- THIS IS THE FIX ---
             containerColor = Color.White,
             tonalElevation = 0.dp,
-            // -----------------------------------------
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch {
@@ -384,7 +376,6 @@ fun SettingsItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            // Label – same as SettingsToggle label
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
@@ -392,7 +383,6 @@ fun SettingsItem(
                 fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
             )
 
-            // Value – same style as SettingsToggle subtitle 👇
             if (value.isNotEmpty()) {
                 Text(
                     text = value,
@@ -409,8 +399,6 @@ fun SettingsItem(
         }
     }
 }
-
-// This is your helper function at the bottom of the file
 
 @Composable
 fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
@@ -438,7 +426,6 @@ fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, on
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            // --- THIS IS THE FIX for the toggle color ---
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
                 checkedTrackColor = MaterialTheme.colorScheme.primary, // The track color when ON
@@ -448,7 +435,6 @@ fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, on
                 uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), // The track color when OFF
                 uncheckedBorderColor = Color.Transparent
             )
-            // -----------------------------------------
         )
     }
 }

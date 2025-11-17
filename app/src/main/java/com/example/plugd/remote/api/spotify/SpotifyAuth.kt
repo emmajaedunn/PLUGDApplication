@@ -15,6 +15,7 @@ object SpotifyAuthConfig {
     const val TOKEN_URL = "https://accounts.spotify.com/api/token"
 }
 
+// PKCE utilities
 object PkceUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun generateCodeVerifier(): String {
@@ -23,6 +24,7 @@ object PkceUtils {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
+    // Generate code challenge from verifier
     @RequiresApi(Build.VERSION_CODES.O)
     fun generateCodeChallenge(verifier: String): String {
         val bytes = verifier.toByteArray(Charsets.US_ASCII)

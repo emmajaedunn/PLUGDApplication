@@ -16,6 +16,7 @@ class ActivityRepository(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
+    // Get activities for a user
     fun getActivitiesForUser(userId: String): Flow<List<ActivityEntity>> = callbackFlow {
         // Cache in Room first
         launch(Dispatchers.IO) {

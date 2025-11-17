@@ -13,15 +13,12 @@ data class Message(
     val content: String = "",
     val timestamp: Long = System.currentTimeMillis(),
 
-    // Reply support
     val replyToMessageId: String? = null,
     val replyToSnippet: String? = null,
 
-    // Attachments
     val mediaUrl: String? = null,
     val mediaType: String? = null,
 
-    // Reactions
     val reactions: Map<String, Long> = emptyMap(),
     val reactors: Map<String, String> = emptyMap()
 )

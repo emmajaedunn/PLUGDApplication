@@ -52,6 +52,7 @@ fun HomeFilterScreen(navController: NavHostController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             // Location Filter
             OutlinedTextField(
                 value = location,
@@ -112,7 +113,6 @@ fun HomeFilterScreen(navController: NavHostController) {
             // Apply Filters Button
             Button(
                 onClick = {
-                    // send values back to the previous screen (Home)
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("filter_location", location)
@@ -132,7 +132,7 @@ fun HomeFilterScreen(navController: NavHostController) {
                 Text("Apply Filters", fontWeight = FontWeight.SemiBold)
             }
 
-            // Clear Filters Button – also sends cleared values back to Home
+            // Clear Filters Button
             OutlinedButton(
                 onClick = {
                     // reset local state
@@ -140,7 +140,6 @@ fun HomeFilterScreen(navController: NavHostController) {
                     category = ""
                     sortByLatest = true
 
-                    // send cleared filters to Home
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("filter_location", "")
@@ -153,7 +152,6 @@ fun HomeFilterScreen(navController: NavHostController) {
                         ?.savedStateHandle
                         ?.set("filter_sort_latest", true)
 
-                    // go back
                     navController.popBackStack()
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -188,70 +186,3 @@ fun SegmentedButtonGroup(
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*package com.example.plugd.ui.screens.home
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.example.plugd.R
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FilterScreen(navController: NavHostController) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { /* No title */ },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.popBackStack()
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.btn_back),
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Filter",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Text(
-                text = "This is a placeholder for the filter page.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}*/

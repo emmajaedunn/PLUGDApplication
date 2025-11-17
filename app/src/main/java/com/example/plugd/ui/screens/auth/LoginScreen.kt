@@ -21,11 +21,7 @@ import com.example.plugd.ui.auth.AuthViewModel
 import com.example.plugd.ui.auth.GoogleAuthUiClient
 import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.theme.Telegraf
-import com.example.plugd.ui.screens.auth.BiometricLogin
 import com.example.plugd.ui.utils.EncryptedPreferencesManager
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -43,6 +39,7 @@ fun LoginScreen(
     val authState by viewModel.authState.collectAsState()
     val context = LocalContext.current
 
+    // Handle auth state changes
     LaunchedEffect(authState) {
         authState?.let { result ->
             result.onSuccess {
@@ -177,7 +174,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // --- BIOMETRIC LOGIN BUTTON (IF ENABLED) ---
+        // Biometric login (if enabled)
         val biometricEnabled = remember {
             EncryptedPreferencesManager.isBiometricEnabled(context)
         }
@@ -185,6 +182,7 @@ fun LoginScreen(
             EncryptedPreferencesManager.getCredentials(context)
         }
 
+        // Biometric login button
         if (biometricEnabled && !savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
             BiometricLogin(
                 title = "Login with Biometrics",

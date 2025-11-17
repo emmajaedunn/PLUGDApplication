@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.plugd.R
 import com.example.plugd.ui.screens.home.SegmentedButtonGroup
@@ -48,10 +47,10 @@ import com.example.plugd.ui.screens.home.SegmentedButtonGroup
 fun ActivityFilterScreen(navController: NavHostController) {
     var category by remember { mutableStateOf("") }
 
-    // true = Newest → Oldest, false = Oldest → Newest
+    // Sort by newest by default
     var sortByLatest by remember { mutableStateOf(true) }
 
-    // NEW categories
+    // Categories
     val categories = listOf(
         "Friend requests",
         "Friend activity",
@@ -82,11 +81,11 @@ fun ActivityFilterScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // CATEGORY DROPDOWN
+            // Category Dropdown
             var expanded by remember { mutableStateOf(false) }
             Box {
                 OutlinedTextField(
-                    value = if (category.isBlank()) "Select Category" else category,
+                    value = category.ifBlank { "Select Category" },
                     onValueChange = {},
                     readOnly = true,
                     modifier = Modifier
@@ -121,7 +120,7 @@ fun ActivityFilterScreen(navController: NavHostController) {
                 }
             }
 
-            // SORT BY TOGGLE
+            // Sort by toggle
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Sort by: ")
                 Spacer(modifier = Modifier.width(8.dp))
@@ -137,7 +136,7 @@ fun ActivityFilterScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // APPLY FILTERS BUTTON
+            // Apply filters button
             Button(
                 onClick = {
                     navController.previousBackStackEntry
@@ -155,7 +154,7 @@ fun ActivityFilterScreen(navController: NavHostController) {
                 Text("Apply Filters", fontWeight = FontWeight.SemiBold)
             }
 
-            // CLEAR FILTERS BUTTON
+            // Clear filters button
             OutlinedButton(
                 onClick = {
                     category = ""
@@ -181,31 +180,3 @@ fun ActivityFilterScreen(navController: NavHostController) {
         }
     }
 }
-
-/*@Composable
-fun SegmentedButtonGroup(
-    options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit
-) {
-    Row {
-        options.forEachIndexed { index, option ->
-            Button(
-                onClick = { onOptionSelected(option) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (option == selectedOption)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.LightGray
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(option, fontSize = 12.sp)
-            }
-
-            if (index != options.lastIndex) {
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-        }
-    }
-}*/

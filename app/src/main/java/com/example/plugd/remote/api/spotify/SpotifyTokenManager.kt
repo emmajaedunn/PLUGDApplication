@@ -9,11 +9,11 @@ import okhttp3.Request
 import org.json.JSONObject
 
 object SpotifyTokenManager {
-    // For a quick uni project you can keep in memory or DataStore
     var accessToken: String? = null
 
     private val client = OkHttpClient()
 
+    // Exchange authorization code for access token
     suspend fun exchangeCodeForToken(code: String, codeVerifier: String) {
         withContext(Dispatchers.IO) {
             val body = FormBody.Builder()
@@ -34,7 +34,6 @@ object SpotifyTokenManager {
             Log.d("SpotifyToken", json)
             val obj = JSONObject(json)
             accessToken = obj.optString("access_token", null)
-            // You can also store refresh_token if you want
         }
     }
 }

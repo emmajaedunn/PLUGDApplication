@@ -6,7 +6,6 @@ object Routes {
     const val HOME = "home_screen"
     const val RESET_PASSWORD = "reset_password"
     const val ABOUT_SUPPORT = "about_support"
-    const val ONBOARDING = "onboarding"
     const val ACTIVITY_FEED = "activity_screen"
     const val ADD = "add_screen"
     const val EVENT_DETAIL = "event_detail/{eventId}"
@@ -18,9 +17,7 @@ object Routes {
     const val SETTINGS_CHANNEL = "settings_channel"
     const val COMMUNITY = "community_screen"
     const val CHAT = "chat"
-
     const val HOME_FILTER = "home_filter"
-
     const val ACTIVITY_FILTER = "activity_filter"
     const val PLUG_DETAILS = "plug_details"
     const val CHANGE_PASSWORD = "change_password"

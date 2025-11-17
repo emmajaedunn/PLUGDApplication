@@ -234,7 +234,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
             event?.let { PlugDetailsScreen(navController = navController, event = it) }
         }
 
-        /* --- Activity Screen ---
+        // --- Activity Screen ---
         composable(Routes.ACTIVITY_FEED) {
             MainScreenWithBottomNav(
                 navController = navController,
@@ -248,30 +248,6 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 },
                 loggedInUserId = loggedInUserId
             )
-        }*/
-
-        composable(Routes.ACTIVITY_FEED) {
-            if (activityViewModel == null) {
-                // Either block access or redirect to login
-                LaunchedEffect(Unit) {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.HOME) { inclusive = false }
-                    }
-                }
-            } else {
-                MainScreenWithBottomNav(
-                    navController = navController,
-                    topBar = { ActivityTopBar(navController) },
-                    content = { padding ->
-                        ActivityFeedScreen(
-                            navController = navController,
-                            activityViewModel = activityViewModel,
-                            profileViewModel = profileViewModel
-                        )
-                    },
-                    loggedInUserId = loggedInUserId
-                )
-            }
         }
 
         // --- Profile Screen ---

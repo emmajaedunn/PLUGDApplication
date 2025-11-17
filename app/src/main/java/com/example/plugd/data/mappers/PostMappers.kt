@@ -4,6 +4,7 @@ import com.example.plugd.model.Post
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Extension function to convert a Map to a Post object
 fun Map<String, Any>.toPost(): Post {
     val dateString = this["dateTime"] as? String
     val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
@@ -14,6 +15,7 @@ fun Map<String, Any>.toPost(): Post {
         Date()
     }
 
+    // Convert the Map to a Post object
     return Post(
         postId = this["postId"] as? String ?: "",
         userId = this["userId"] as? String ?: "",

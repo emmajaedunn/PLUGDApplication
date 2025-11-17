@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plugd.data.localRoom.entity.UserEntity
 import com.example.plugd.data.repository.AuthRepository
-import com.example.plugd.data.repository.ProfileRepository
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +14,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _authState = MutableStateFlow<Result<UserEntity>?>(null)
     val authState: StateFlow<Result<UserEntity>?> get() = _authState
 
+    // Register
     fun register(name: String, username: String, email: String, password: String) {
         viewModelScope.launch {
             try {
@@ -26,6 +26,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    // Login
     fun login(email: String, password: String) {
         viewModelScope.launch {
             try {
@@ -37,6 +38,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    // Google login
     fun loginWithGoogle(credential: AuthCredential) = viewModelScope.launch {
         try {
             val user = repository.loginWithCredential(credential)
@@ -46,10 +48,12 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    // Clear auth state
     fun clearAuthState() {
         _authState.value = null
     }
 
+    // Reset password
     fun resetPassword(email: String, onResult: (Boolean, String?) -> Unit) {
         if (email.isBlank()) return
         FirebaseAuth.getInstance().sendPasswordResetEmail(email)

@@ -37,7 +37,6 @@ class EventViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // ✅ New: create event by delegating to repository.createEvent
     fun createEvent(
         name: String,
         category: String,

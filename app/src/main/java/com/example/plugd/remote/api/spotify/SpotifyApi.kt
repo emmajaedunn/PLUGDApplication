@@ -5,7 +5,6 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 
-// --------- DATA MODELS ---------
 data class SpotifyImage(val url: String, val height: Int?, val width: Int?)
 
 data class SpotifyOwner(
@@ -24,9 +23,9 @@ data class SpotifyPlaylistResponse(
     val items: List<SpotifyPlaylist>
 )
 
-// --------- SPOTIFY API ---------
 interface SpotifyApiService {
 
+    // Get user's playlists
     @GET("me/playlists")
     suspend fun getMyPlaylists(
         @Header("Authorization") auth: String,
@@ -34,11 +33,11 @@ interface SpotifyApiService {
     ): Response<SpotifyPlaylistResponse>
 }
 
-// --------- RETROFIT INSTANCE ---------
+// Retrofit instance
 object SpotifyRetrofit {
 
     private val retrofit = retrofit2.Retrofit.Builder()
-        .baseUrl("https://api.spotify.com/v1/")   // ⭐ Correct base URL
+        .baseUrl("https://api.spotify.com/v1/")
         .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
         .build()
 

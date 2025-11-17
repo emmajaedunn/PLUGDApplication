@@ -19,9 +19,11 @@ data class UserProfile(
 
     val socials: Map<String, String> = emptyMap(),
 
+    // Profile Picture
     val profileImageUrl: String? = null,
     val profilePictureUrl: String? = null,
 
+    // Social Media Links
     val spotifyUrl: String? = null,
     val appleMusicUrl: String? = null,
     val tiktokUrl: String? = null,
@@ -29,13 +31,14 @@ data class UserProfile(
 
     val spotifyPlaylists: List<SpotifyPlaylistEmbedded> = emptyList(),
 
-    // Settings/preferences
+    // Settings
     val notificationsEnabled: Boolean = true,
     val darkModeEnabled: Boolean = false,
     val biometricEnabled: Boolean = false,
     val pushEnabled: Boolean = true
 )
 
+// Spotify Playlist
 data class SpotifyPlaylistEmbedded(
     val id: String = "",
     val name: String = "",

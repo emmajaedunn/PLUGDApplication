@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun GoogleSignInButton(
-    viewModel: AuthViewModel,          // included so your call site compiles, even if not used
+    viewModel: AuthViewModel,
     googleAuthClient: GoogleAuthUiClient,
     onSuccess: () -> Unit
 ) {
@@ -42,9 +42,9 @@ fun GoogleSignInButton(
                 return@TextButton
             }
 
+            // Sign in with Google
             scope.launch {
                 try {
-                    // 1) Use your existing GoogleAuthUiClient logic
                     val result = googleAuthClient.signIn()
 
                     if (result.isSuccess) {
@@ -52,7 +52,6 @@ fun GoogleSignInButton(
                         val idToken = googleCredential.idToken
 
                         if (!idToken.isNullOrEmpty()) {
-                            // 2) Firebase sign-in using your helper
                             val user = googleAuthClient.firebaseSignInWithGoogle(idToken)
 
                             if (user != null) {
@@ -98,9 +97,9 @@ fun GoogleSignInButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_google), // or your google logo
+                painter = painterResource(id = R.drawable.ic_google),
                 contentDescription = "Google icon",
-                modifier = Modifier.size(20.dp) // match Biometric icon size
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(

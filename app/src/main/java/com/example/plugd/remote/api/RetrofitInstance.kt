@@ -12,7 +12,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val FALLBACK = "https://us-central1-plugdapp.cloudfunctions.net/api/"
+    private const val FALLBACK =
+        "https://us-central1-plugdapp.cloudfunctions.net/"
     private val BASE_URL = runCatching { BuildConfig.API_BASE_URL }.getOrDefault(FALLBACK)
 
     private val logging = HttpLoggingInterceptor().apply {
@@ -27,7 +28,9 @@ object RetrofitInstance {
                 ?.token
         }
         val req = chain.request().newBuilder().apply {
-            if (!token.isNullOrBlank()) addHeader("Authorization", "Bearer $token")
+            if (!token.isNullOrBlank()) {
+                addHeader("Authorization", "Bearer $token")
+            }
         }.build()
         chain.proceed(req)
     }
@@ -42,7 +45,7 @@ object RetrofitInstance {
 
     val api: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL) // trailing slash already in BuildConfig
+            .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

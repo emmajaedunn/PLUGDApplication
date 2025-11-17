@@ -7,7 +7,6 @@ import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.data.localRoom.entity.UserProfileEntity
 import com.example.plugd.model.SpotifyPlaylistEmbedded
 import com.example.plugd.model.UserProfile
-import com.google.android.play.integrity.internal.p
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,15 +29,8 @@ class ProfileRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val storage = FirebaseStorage.getInstance("gs://plugdapp.firebasestorage.app")
 
+    // Observe remote profile
     fun observeRemoteProfile(userId: String, onProfileChanged: (UserProfile?) -> Unit) {
-        // 🔹 if not logged in, don't even try to listen
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            Log.d("ProfileRepo", "observeRemoteProfile: no current user, skipping listener")
-            onProfileChanged(null)
-            return
-        }
-
         usersCollection.document(userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -50,8 +42,10 @@ class ProfileRepository(
                 if (snapshot != null && snapshot.exists()) {
                     val data = snapshot.data ?: emptyMap<String, Any>()
 
+                    // Base mapping
                     val base = snapshot.toObject(UserProfile::class.java) ?: UserProfile()
 
+                    // Force followers / following from raw Firestore data
                     val followers = (data["followers"] as? List<*>)?.filterIsInstance<String>()
                         ?: emptyList()
                     val following = (data["following"] as? List<*>)?.filterIsInstance<String>()
@@ -96,70 +90,10 @@ class ProfileRepository(
             }
     }
 
-    /*
-    fun observeRemoteProfile(userId: String, onProfileChanged: (UserProfile?) -> Unit) {
-        usersCollection.document(userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("ProfileRepo", "Listen failed", error)
-                    onProfileChanged(null)
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    val data = snapshot.data ?: emptyMap<String, Any>()
-
-                    // Base mapping
-                    val base = snapshot.toObject(UserProfile::class.java) ?: UserProfile()
-
-                    // 🔹 Force followers / following from raw Firestore data
-                    val followers = (data["followers"] as? List<*>)?.filterIsInstance<String>()
-                        ?: emptyList()
-                    val following = (data["following"] as? List<*>)?.filterIsInstance<String>()
-                        ?: emptyList()
-
-                    val fixedProfile = base.copy(
-                        userId = base.userId.ifBlank { snapshot.id },
-                        followers = followers,
-                        following = following,
-                        followersCount = followers.size,
-                        followingCount = following.size
-                    )
-
-                    onProfileChanged(fixedProfile)
-
-                    // Optional: keep Room in sync
-                    val entity = UserProfileEntity(
-                        userId = fixedProfile.userId,
-                        phone = fixedProfile.phone,
-                        username = fixedProfile.username,
-                        name = fixedProfile.name,
-                        email = fixedProfile.email,
-                        bio = fixedProfile.bio,
-                        location = fixedProfile.location,
-                        gender = fixedProfile.gender,
-                        socials = Gson().toJson(fixedProfile.socials),
-                        profilePictureUrl = fixedProfile.profilePictureUrl,
-                        followersCount = fixedProfile.followersCount,
-                        followingCount = fixedProfile.followingCount,
-                        notificationsEnabled = fixedProfile.notificationsEnabled,
-                        darkModeEnabled = fixedProfile.darkModeEnabled,
-                        biometricEnabled = fixedProfile.biometricEnabled,
-                        pushEnabled = fixedProfile.pushEnabled,
-                        spotifyPlaylists = fixedProfile.spotifyPlaylists
-                    )
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        profileDao.insertProfile(entity)
-                    }
-                } else {
-                    onProfileChanged(null)
-                }
-            }
-    }*/
-
+    // Get local profile
     suspend fun getLocalProfile(userId: String) = profileDao.getProfileById(userId)
 
+    // Get remote profile
     suspend fun getRemoteProfile(userId: String): UserProfile? {
         val snapshot = usersCollection.document(userId).get().await()
         if (!snapshot.exists()) return null
@@ -208,6 +142,7 @@ class ProfileRepository(
         return fixedProfile
     }
 
+    // Update profile field
     suspend fun updateProfileField(userId: String, field: String, value: String) {
         usersCollection.document(userId).update(field, value).await()
         profileDao.getProfileById(userId)?.let { local ->
@@ -223,6 +158,7 @@ class ProfileRepository(
         }
     }
 
+    // Update Spotify Playlists
     suspend fun updateSpotifyPlaylists(
         userId: String,
         playlists: List<SpotifyPlaylistEmbedded>
@@ -239,6 +175,7 @@ class ProfileRepository(
         }
     }
 
+    // Update socials map
     suspend fun updateSocials(userId: String, socials: Map<String, String>) {
         usersCollection.document(userId).update("socials", socials).await()
         profileDao.getProfileById(userId)?.let { localProfile ->
@@ -248,18 +185,22 @@ class ProfileRepository(
         }
     }
 
+    // Get user followers collection
     fun getUserFollowersCollection(userId: String) =
         firestore.collection("users").document(userId).collection("followers")
 
+    // Get user following collection
     fun getUserFollowingCollection(userId: String) =
         firestore.collection("users").document(userId).collection("following")
 
+    // Fetch following users
     suspend fun isFollowing(currentUserId: String, targetUserId: String): Boolean {
         val snapshot = usersCollection.document(currentUserId).get().await()
         val following = snapshot.get("following") as? List<String> ?: emptyList()
         return following.contains(targetUserId)
     }
 
+    // Follow / Unfollow
     suspend fun addFollower(targetUserId: String, currentUserId: String) {
         usersCollection.document(targetUserId)
             .set(mapOf("followers" to FieldValue.arrayUnion(currentUserId)), SetOptions.merge())
@@ -272,16 +213,15 @@ class ProfileRepository(
             .await()
     }
 
+    // Remove follower
     suspend fun removeFollower(targetUserId: String, followerId: String) {
-        // delete subcollection doc
         getUserFollowersCollection(targetUserId).document(followerId).delete().await()
-
-        // 🔹 remove id from followers array on target user doc
         usersCollection.document(targetUserId)
             .update("followers", FieldValue.arrayRemove(followerId))
             .await()
     }
 
+    // Remove following
     suspend fun removeFollowing(currentUserId: String, targetUserId: String) {
         getUserFollowingCollection(currentUserId).document(targetUserId).delete().await()
 
@@ -290,6 +230,7 @@ class ProfileRepository(
             .await()
     }
 
+    // Update profile picture
     suspend fun uploadProfilePicture(userId: String, photoUri: Uri) {
         try {
             Log.d("ProfileRepository", "Using bucket: ${storage.reference.bucket}")
@@ -343,12 +284,11 @@ class ProfileRepository(
         activityRef.set(activity).await()
     }
 
-    // JUST ADDED
-    // Called from Chat when someone replies to YOUR message
+    // Called after a user you FOLLOW posts a new plug
     suspend fun addMessageReplyActivity(
-        toUserId: String,       // owner of original message
-        fromUserId: String,     // replier
-        fromUsername: String,   // replier's username
+        toUserId: String,
+        fromUserId: String,
+        fromUsername: String,
         chatId: String,
         messagePreview: String
     ) {
@@ -370,10 +310,9 @@ class ProfileRepository(
         val creatorId = creatorProfile.userId
         val creatorUsername = creatorProfile.username ?: "Someone"
 
-        // followers is List<String> of userIds on the creator profile
         creatorProfile.followers.forEach { followerId ->
             addActivity(
-                userId = followerId,        // each follower gets a feed item
+                userId = followerId,
                 type = "new_plug",
                 fromUserId = creatorId,
                 fromUsername = creatorUsername,
@@ -383,39 +322,37 @@ class ProfileRepository(
         }
     }
 
+    // Delete account
     suspend fun deleteAccount() {val auth = FirebaseAuth.getInstance()
         val userId = auth.currentUser?.uid ?: return
         val user = auth.currentUser ?: return
 
         try {
-            // Step 1: Delete Firestore Document
+            // Delete Firestore Document
             usersCollection.document(userId).delete().await()
 
-            // Step 2: Delete Profile Picture from Storage (if it exists)
+            // Delete Profile Picture from Storage
             try {
                 val storageRef = FirebaseStorage.getInstance().reference.child("profile_pictures/$userId.jpg")
                 storageRef.delete().await()
             } catch (e: Exception) {
-                // This is not a fatal error; user may not have a profile picture.
                 Log.w("ProfileRepository", "Could not delete profile picture, it may not exist.", e)
             }
 
-            // Step 3: Delete the User from Firebase Authentication
-            // This is the final, irreversible step.
+            // Delete the User from Firebase Authentication
             user.delete().await()
 
-            // Step 4: Clear any local data
+            // Clear any local data
             clearLocalCache()
 
         } catch (e: Exception) {
-            if (e is CancellationException) throw e // Coroutine was cancelled
-            // This often fails if the user hasn't logged in recently.
-            // For a production app, you would need to implement re-authentication here.
+            if (e is CancellationException) throw e
             Log.e("ProfileRepository", "Error deleting account", e)
-            throw e // Re-throw the exception to be caught by the ViewModel
+            throw e
         }
     }
 
+    // Clear local cache
     suspend fun clearLocalCache() = profileDao.clearAllProfiles()
 }
 

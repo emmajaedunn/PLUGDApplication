@@ -7,15 +7,18 @@ import kotlinx.coroutines.tasks.await
 class EventRemoteDataSource(private val firestore: FirebaseFirestore) {
     private val eventsCol = firestore.collection("events")
 
+    // Add event to Firestore
     suspend fun addEvent(event: EventEntity) {
         eventsCol.document(event.eventId).set(event).await()
     }
 
+    // Get all events from Firestore
     suspend fun getEvents(): List<EventEntity> {
         val snapshot = eventsCol.get().await()
         return snapshot.documents.mapNotNull { it.toObject(EventEntity::class.java) }
     }
 
+    // Get events for a specific user
     suspend fun getUserEvents(userId: String): List<EventEntity> {
         val snapshot = eventsCol
             .whereEqualTo("createdBy", userId)

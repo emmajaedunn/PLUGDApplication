@@ -16,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage
 
 class FirebaseMessagingServiceImpl : FirebaseMessagingService() {
 
+    // Handle incoming FCM messages
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
@@ -38,6 +39,7 @@ class FirebaseMessagingServiceImpl : FirebaseMessagingService() {
             ?: message.notification?.body
             ?: "You have a new update in PLUGD"
 
+        // Show notification
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.plugd_icon)
             .setContentTitle(title)
@@ -58,6 +60,7 @@ class FirebaseMessagingServiceImpl : FirebaseMessagingService() {
         }
     }
 
+    // Create notification channel if needed
     private fun createChannelIfNeeded(channelId: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

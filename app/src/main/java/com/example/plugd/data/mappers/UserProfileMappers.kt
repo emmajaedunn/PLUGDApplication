@@ -6,7 +6,7 @@ import com.example.plugd.model.UserProfile
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-// --- From UserEntity (auth) to UserProfileEntity (Room) ---
+// From User (domain model) to Room Entity
 fun UserEntity.toUserProfileEntity(): UserProfileEntity {
     return UserProfileEntity(
         userId = this.userId,
@@ -16,7 +16,7 @@ fun UserEntity.toUserProfileEntity(): UserProfileEntity {
     )
 }
 
-// --- From UserProfile (domain model) to Room Entity ---
+// From UserProfile (domain model) to Room Entity
 fun UserProfile.toUserProfileEntity(): UserProfileEntity {
     val socialsJson = Gson().toJson(this.socials)
 
@@ -32,7 +32,7 @@ fun UserProfile.toUserProfileEntity(): UserProfileEntity {
         followersCount = this.followersCount,
         profilePictureUrl = this.profilePictureUrl,
         socials = socialsJson,
-        followingCount = this.followingCount,   // ✅ add this if your model supports it
+        followingCount = this.followingCount,
         notificationsEnabled = this.notificationsEnabled,
         darkModeEnabled = this.darkModeEnabled,
         biometricEnabled = this.biometricEnabled,
@@ -61,13 +61,13 @@ fun UserProfileEntity.toUserProfile(): UserProfile {
         socials = socialsMap,
         profilePictureUrl = this.profilePictureUrl,
         followersCount = this.followersCount,
-        followingCount = this.followingCount,   // ✅ keep follower/following parity
+        followingCount = this.followingCount,
         notificationsEnabled = this.notificationsEnabled,
         darkModeEnabled = this.darkModeEnabled,
         biometricEnabled = this.biometricEnabled,
         pushEnabled = this.pushEnabled,
         spotifyPlaylists = spotifyPlaylists,
-        events = emptyList() // optional placeholder until events are loaded
+        events = emptyList()
     )
 }
 

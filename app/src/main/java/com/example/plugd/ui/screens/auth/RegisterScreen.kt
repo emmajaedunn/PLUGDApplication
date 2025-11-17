@@ -36,6 +36,7 @@ fun RegisterScreen(
     val authState by viewModel.authState.collectAsState()
     val context = LocalContext.current
 
+    // Handle auth state changes
     LaunchedEffect(authState) {
         authState?.let { result ->
             result.onSuccess {

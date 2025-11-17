@@ -57,40 +57,6 @@ class ProfileViewModel(
             events.filter { e -> (e.ownerUid == uid) || (e.userId == uid) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    /*fun loadProfile(userId: String? = null) {
-        viewModelScope.launch {
-            _loading.value = true
-            try {
-                val currentUserId = auth.currentUser?.uid ?: return@launch
-                val targetUserId = userId ?: currentUserId
-                _targetUserId.value = targetUserId
-                _isOwnProfile.value = (targetUserId == currentUserId)
-
-                // Real-time listener
-                profileRepository.observeRemoteProfile(targetUserId) { live ->
-                    if (live != null) {
-                        _profile.value = live
-                        _isFollowing.value = live.followers.contains(currentUserId)
-                    }
-                }
-
-                // Initial one-shot fetch
-                val remote = profileRepository.getRemoteProfile(targetUserId)
-                if (remote != null) {
-                    _profile.value = remote
-                    _isFollowing.value = remote.followers.contains(currentUserId)
-                }
-
-                refreshEvents()
-
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to load profile"
-            } finally {
-                _loading.value = false
-            }
-        }
-    }*/
-
     fun loadProfile(userId: String? = null) {
         viewModelScope.launch {
             _loading.value = true

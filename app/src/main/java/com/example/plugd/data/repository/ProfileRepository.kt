@@ -5,7 +5,6 @@ import android.util.Log
 import com.example.plugd.data.localRoom.dao.UserProfileDao
 import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.data.localRoom.entity.UserProfileEntity
-import com.example.plugd.data.mappers.toUserProfile
 import com.example.plugd.model.SpotifyPlaylistEmbedded
 import com.example.plugd.model.UserProfile
 import com.google.android.play.integrity.internal.p
@@ -28,8 +27,76 @@ class ProfileRepository(
     private val usersCollection = firestore.collection("users")
     private val activitiesCollection = firestore.collection("activities")
 
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val storage = FirebaseStorage.getInstance("gs://plugdapp.firebasestorage.app")
 
+    fun observeRemoteProfile(userId: String, onProfileChanged: (UserProfile?) -> Unit) {
+        // 🔹 if not logged in, don't even try to listen
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.d("ProfileRepo", "observeRemoteProfile: no current user, skipping listener")
+            onProfileChanged(null)
+            return
+        }
+
+        usersCollection.document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("ProfileRepo", "Listen failed", error)
+                    onProfileChanged(null)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val data = snapshot.data ?: emptyMap<String, Any>()
+
+                    val base = snapshot.toObject(UserProfile::class.java) ?: UserProfile()
+
+                    val followers = (data["followers"] as? List<*>)?.filterIsInstance<String>()
+                        ?: emptyList()
+                    val following = (data["following"] as? List<*>)?.filterIsInstance<String>()
+                        ?: emptyList()
+
+                    val fixedProfile = base.copy(
+                        userId = base.userId.ifBlank { snapshot.id },
+                        followers = followers,
+                        following = following,
+                        followersCount = followers.size,
+                        followingCount = following.size
+                    )
+
+                    onProfileChanged(fixedProfile)
+
+                    val entity = UserProfileEntity(
+                        userId = fixedProfile.userId,
+                        phone = fixedProfile.phone,
+                        username = fixedProfile.username,
+                        name = fixedProfile.name,
+                        email = fixedProfile.email,
+                        bio = fixedProfile.bio,
+                        location = fixedProfile.location,
+                        gender = fixedProfile.gender,
+                        socials = Gson().toJson(fixedProfile.socials),
+                        profilePictureUrl = fixedProfile.profilePictureUrl,
+                        followersCount = fixedProfile.followersCount,
+                        followingCount = fixedProfile.followingCount,
+                        notificationsEnabled = fixedProfile.notificationsEnabled,
+                        darkModeEnabled = fixedProfile.darkModeEnabled,
+                        biometricEnabled = fixedProfile.biometricEnabled,
+                        pushEnabled = fixedProfile.pushEnabled,
+                        spotifyPlaylists = fixedProfile.spotifyPlaylists
+                    )
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        profileDao.insertProfile(entity)
+                    }
+                } else {
+                    onProfileChanged(null)
+                }
+            }
+    }
+
+    /*
     fun observeRemoteProfile(userId: String, onProfileChanged: (UserProfile?) -> Unit) {
         usersCollection.document(userId)
             .addSnapshotListener { snapshot, error ->
@@ -89,7 +156,7 @@ class ProfileRepository(
                     onProfileChanged(null)
                 }
             }
-    }
+    }*/
 
     suspend fun getLocalProfile(userId: String) = profileDao.getProfileById(userId)
 

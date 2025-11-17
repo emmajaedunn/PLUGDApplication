@@ -30,6 +30,7 @@ import com.example.plugd.ui.utils.EncryptedPreferencesManager
 import kotlinx.coroutines.launch
 import com.example.plugd.R
 import com.example.plugd.ui.theme.Telegraf
+import com.example.plugd.ui.utils.AppLanguageHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +65,14 @@ fun SettingsScreen(
     var showBiometricPrompt by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var enteredPassword by remember { mutableStateOf("") }
+
+    val langCode by AppLanguageHelper.getLanguageFlow(context).collectAsState(initial = "en")
+
+    val languageLabel = when (langCode) {
+        "af" -> "Afrikaans"
+        "xh" -> "Xhosa"
+        else -> "English"
+    }
 
     LaunchedEffect(Unit) {
         profileViewModel.loadProfile()
@@ -192,7 +201,7 @@ fun SettingsScreen(
             // Language Preferences
             SettingsItem(
                 label = stringResource(R.string.language_preferences),
-                value = stringResource(R.string.language_current_english),
+                value = languageLabel,
                 actionText = stringResource(R.string.language_change_button)
             ) {
                 navController.navigate(Routes.CHANGE_LANGUAGE)

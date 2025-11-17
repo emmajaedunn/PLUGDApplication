@@ -33,7 +33,6 @@ import com.example.plugd.R
 import com.example.plugd.data.localRoom.entity.EventEntity
 import com.example.plugd.model.SpotifyPlaylistEmbedded
 import com.example.plugd.model.UserProfile
-import com.example.plugd.remote.api.spotify.SpotifyPlaylist
 import com.example.plugd.remote.api.spotify.startSpotifyAuth
 import com.example.plugd.ui.navigation.Routes
 import com.example.plugd.ui.screens.nav.ProfileTopBar
@@ -52,11 +51,6 @@ fun ProfileScreen(
     val isOwnProfile by profileViewModel.isOwnProfile.collectAsState()
     val isFollowing by profileViewModel.isFollowing.collectAsState()
     val userEvents by profileViewModel.userEvents.collectAsState()
-
-    /* Correct
-    LaunchedEffect(userId) {
-        profileViewModel.loadProfile(userId)
-    }*/
 
     LaunchedEffect(userId) {
         profileViewModel.loadProfile(userId)

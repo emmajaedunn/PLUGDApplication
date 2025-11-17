@@ -7,6 +7,6 @@ data class CreateEventDto(
     val location: String?,
     val latitude: Double?,
     val longitude: Double?,
-    val date: Long?,            // epoch millis
+    val date: Long?,
     val spotifyPlaylistId: String? = null
 )

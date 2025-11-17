@@ -59,8 +59,6 @@ import com.example.plugd.viewmodels.ActivityFeedViewModel
 import com.example.plugd.viewmodels.factory.ActivityFeedViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -146,20 +144,6 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 googleAuthClient = googleAuthClient
             )
         }
-
-        /* --- Register Screen ---
-        composable(Routes.REGISTER) {
-            RegisterScreen(
-                navController = navController,
-                viewModel = authViewModel,
-                onRegisterSuccess = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.REGISTER) { inclusive = true }
-                    }
-                },
-                googleAuthClient = googleAuthClient
-            )
-        }*/
 
         // --- Login Screen ---
         composable(Routes.LOGIN) {
@@ -250,7 +234,7 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
             event?.let { PlugDetailsScreen(navController = navController, event = it) }
         }
 
-        // --- Activity Screen ---
+        /* --- Activity Screen ---
         composable(Routes.ACTIVITY_FEED) {
             MainScreenWithBottomNav(
                 navController = navController,
@@ -264,6 +248,30 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 },
                 loggedInUserId = loggedInUserId
             )
+        }*/
+
+        composable(Routes.ACTIVITY_FEED) {
+            if (activityViewModel == null) {
+                // Either block access or redirect to login
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                    }
+                }
+            } else {
+                MainScreenWithBottomNav(
+                    navController = navController,
+                    topBar = { ActivityTopBar(navController) },
+                    content = { padding ->
+                        ActivityFeedScreen(
+                            navController = navController,
+                            activityViewModel = activityViewModel,
+                            profileViewModel = profileViewModel
+                        )
+                    },
+                    loggedInUserId = loggedInUserId
+                )
+            }
         }
 
         // --- Profile Screen ---
@@ -339,22 +347,6 @@ fun AppNavHost(startDestination: String = Routes.REGISTER, isDarkMode: Boolean, 
                 onToggleDarkMode = onToggleDarkMode
             )
         }
-
-        /* --- Settings Screen (Profile) ---
-        composable(Routes.SETTINGS) {
-            SettingsScreen(
-                navController = navController,
-                profileViewModel = profileViewModel,
-                // --- THIS IS THE FIX ---
-                // The onSignOut lambda now ONLY calls logout and does not navigate.
-                onSignOut = {
-                    profileViewModel.logout()
-                },
-                onDeleteAccount = { /* ... */ },
-                isDarkMode = isDarkMode,
-                onToggleDarkMode = onToggleDarkMode
-            )
-        }*/
 
         // EDIT EVENT NEW
         composable(

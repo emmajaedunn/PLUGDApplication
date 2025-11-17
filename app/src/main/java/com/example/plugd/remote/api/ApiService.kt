@@ -52,12 +52,20 @@ interface ApiService {
     @POST("events")
     suspend fun addEvent(@Body event: CreateEventDto): Response<EventEntity>
 
+
+    @PUT("events/{id}")
+    suspend fun updateEvent(@Path("id") id: String, @Body event: EventEntity): Response<Unit>
+
+    @DELETE("events/{id}")
+    suspend fun deleteEvent(@Path("id") id: String): Response<Unit>
+
+    /*
     @PUT("api/events/{id}")
     suspend fun updateEvent(@Path("id") id: String, @Body event: EventEntity): Response<Unit>
 
     @DELETE("api/events/{id}")
     suspend fun deleteEvent(@Path("id") id: String): Response<Unit>
-
+*/
     // -----------------
     // Activities
     // -----------------

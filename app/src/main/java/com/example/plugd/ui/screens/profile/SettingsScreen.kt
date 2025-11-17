@@ -1,7 +1,6 @@
 package com.example.plugd.ui.screens.profile
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,15 +18,18 @@ import com.example.plugd.ui.utils.NotificationHelper
 import com.example.plugd.viewmodels.ProfileViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.example.plugd.ui.screens.auth.BiometricLogin
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.plugd.ui.utils.EncryptedPreferencesManager
 import kotlinx.coroutines.launch
 import com.example.plugd.R
+import com.example.plugd.ui.theme.Telegraf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,17 +58,12 @@ fun SettingsScreen(
     var editingField by remember { mutableStateOf<String?>(null) }
     var editBuffer by remember { mutableStateOf("") }
 
-    val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
-        .collectAsState(initial = false)
+    val biometricEnabled = remember { EncryptedPreferencesManager.isBiometricEnabled(context) }
     var biometricToggleState by remember { mutableStateOf(biometricEnabled) }
+
     var showBiometricPrompt by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var enteredPassword by remember { mutableStateOf("") }
-
-    // Keep toggle in sync with stored preference
-    LaunchedEffect(biometricEnabled) {
-        biometricToggleState = biometricEnabled
-    }
 
     LaunchedEffect(Unit) {
         profileViewModel.loadProfile()
@@ -88,7 +85,10 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.account_information),
                 //"Account Information",
-                style = MaterialTheme.typography.titleMedium)
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
 
             val fields = listOf(
                 "username" to userProfile?.username.orEmpty(),
@@ -122,7 +122,10 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.account_settings),
                 //"Account Settings",
-                style = MaterialTheme.typography.titleMedium)
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
 
             // Notifications
             SettingsToggle(
@@ -150,10 +153,13 @@ fun SettingsScreen(
                 checked = biometricToggleState,
                 onCheckedChange = { enabled ->
                     biometricToggleState = enabled
-                    if (enabled) showPasswordDialog = true
-                    else scope.launch {
-                        EncryptedPreferencesManager.clear(context, currentUserId)
-                        EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
+                    if (enabled) {
+                        // Ask for password to save credentials
+                        showPasswordDialog = true
+                    } else {
+                        // Turn off biometric & clear stored credentials
+                        EncryptedPreferencesManager.setBiometricEnabled(context, false)
+                        EncryptedPreferencesManager.clear(context)
                     }
                 }
             )
@@ -163,24 +169,22 @@ fun SettingsScreen(
                     title = stringResource(R.string.enable_biometric_login),
                     canAuthenticate = true,
                     onAuthSuccess = {
-                        scope.launch {
-                            val email = userProfile?.email.orEmpty()
-                            if (email.isNotEmpty() && enteredPassword.isNotEmpty()) {
-                                EncryptedPreferencesManager.saveCredentials(context, currentUserId, email, enteredPassword)
-                                EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, true)
-                            }
-                        }
+                        // now we *know* biometrics worked
+                        EncryptedPreferencesManager.setBiometricEnabled(context, true)
+
                         showBiometricPrompt = false
                         biometricToggleState = true
                         Toast.makeText(context, "Biometric login enabled!", Toast.LENGTH_SHORT).show()
                     },
                     onAuthFailure = {
-                        scope.launch {
-                            EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
-                        }
+                        EncryptedPreferencesManager.setBiometricEnabled(context, false)
                         showBiometricPrompt = false
                         biometricToggleState = false
-                        Toast.makeText(context, "Biometric authentication failed.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Biometric authentication failed.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 )
             }
@@ -206,15 +210,18 @@ fun SettingsScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        EncryptedPreferencesManager.setBiometricEnabled(context, currentUserId, false)
-                        EncryptedPreferencesManager.clear(context, currentUserId)
+                        // ✅ Don't clear biometric prefs here
+                        // Leave EncryptedPreferencesManager as-is so login can use it
 
                         onSignOut()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.sign_out))
+                Text(
+                    stringResource(R.string.sign_out),
+                    fontWeight = FontWeight.W500
+                )
             }
 
             // Delete Account
@@ -223,7 +230,8 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
-                Text(stringResource(R.string.delete_account))
+                Text(stringResource(R.string.delete_account),
+                    fontWeight = FontWeight.W500)
             }
 
             // Add this AlertDialog somewhere inside the main Column of your screen
@@ -259,35 +267,98 @@ fun SettingsScreen(
     }
 
     // Edit field dialog
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text(stringResource(R.string.enable_biometric_login)) },
+            text = {
+                Column {
+                    Text("Accept biometrics permissions")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = enteredPassword,
+                        onValueChange = { enteredPassword = it },
+                        label = { Text(stringResource(R.string.password)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+                }
+            },
+            // --- THIS IS THE FIX ---
+            containerColor = Color.White,
+            tonalElevation = 0.dp,
+            confirmButton = {
+                TextButton(onClick = {
+                    val email = userProfile?.email.orEmpty()
+                    if (email.isNotEmpty() && enteredPassword.isNotEmpty()) {
+                        // 1) Just save credentials
+                        EncryptedPreferencesManager.saveCredentials(context, email, enteredPassword)
+
+                        showPasswordDialog = false
+                        showBiometricPrompt = true   // 2) Now show the biometric prompt
+                    }
+                }) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPasswordDialog = false
+                    biometricToggleState = false
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            })
+    }
+
+    // Edit profile fields (username, email, phone, bio, location)
     if (editingField != null) {
         val field = editingField!!
         AlertDialog(
             onDismissRequest = { editingField = null },
-            title = { Text("Edit ${field.replaceFirstChar { it.uppercaseChar() }}") },
+            title = { Text("Edit ${field.replaceFirstChar { it.uppercaseChar() }}",
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) },
             text = {
                 OutlinedTextField(
                     value = editBuffer,
                     onValueChange = { editBuffer = it },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                 )
             },
+            // --- THIS IS THE FIX for the dialog color ---
+            // --- THIS IS THE FIX ---
+            containerColor = Color.White,
+            tonalElevation = 0.dp,
+            // -----------------------------------------
             confirmButton = {
                 TextButton(onClick = {
-                    // We launch a coroutine to call the suspend function
                     scope.launch {
                         profileViewModel.updateProfileField(field, editBuffer)
                     }
                     editingField = null
-                }) { Text(stringResource(R.string.save))}
+                }) { Text(stringResource(R.string.save),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal) }
             },
             dismissButton = {
-                TextButton(onClick = { editingField = null }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = {
+                    editingField = null
+                }) { Text(stringResource(R.string.cancel),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal) }
             }
         )
     }
-
 }
+
 
 @Composable
 fun SettingsItem(
@@ -304,14 +375,33 @@ fun SettingsItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
+            // Label – same as SettingsToggle label
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
+
+            // Value – same style as SettingsToggle subtitle 👇
             if (value.isNotEmpty()) {
-                Text(value, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
-        TextButton(onClick = onAction) { Text(actionText) }
+
+        TextButton(onClick = onAction) {
+            Text(actionText)
+        }
     }
 }
+
+// This is your helper function at the bottom of the file
 
 @Composable
 fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
@@ -323,16 +413,34 @@ fun SettingsToggle(label: String, subtitle: String? = null, checked: Boolean, on
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
+            Text(label,
+                style = MaterialTheme.typography.bodyMedium, fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
             if (!subtitle.isNullOrEmpty()) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            // --- THIS IS THE FIX for the toggle color ---
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = MaterialTheme.colorScheme.primary, // The track color when ON
+                checkedBorderColor = Color.Transparent,
+
+                uncheckedThumbColor = Color.White,
+                uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), // The track color when OFF
+                uncheckedBorderColor = Color.Transparent
+            )
+            // -----------------------------------------
+        )
     }
 }
 
@@ -349,9 +457,20 @@ fun AppItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
             if (value.isNotEmpty()) {
-                Text(value, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

@@ -44,7 +44,7 @@ fun EventCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Event name
+            // Plug name
             Text(
                 text = event.name,
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -54,7 +54,7 @@ fun EventCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Optional description
+            // Plug description
             if (event.description.isNotEmpty()) {
                 Text(
                     text = event.description,
@@ -63,13 +63,13 @@ fun EventCard(
                 )
             }
 
-            // Location
+            // Plug Location
             Text(
                 text = "Location: ${event.location}",
                 style = MaterialTheme.typography.bodySmall
             )
 
-            // Creator
+            // Plug Creator
             Text(
                 text = "Created by: ${event.createdByName}",
                 style = MaterialTheme.typography.bodySmall

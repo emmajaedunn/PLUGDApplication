@@ -10,35 +10,41 @@ import androidx.core.app.NotificationCompat
 import com.example.plugd.R
 
 class NotificationReceiver : BroadcastReceiver() {
+
     override fun onReceive(context: Context, intent: Intent?) {
-        val channelId = "plugd_reminder_channel"
+        val helper = NotificationHelper(context)
+
+        // Master switch: if user turned notifications off, do nothing
+        if (!helper.isNotificationsEnabled()) return
+
+        val channelId = NotificationHelper.MAIN_CHANNEL_ID
         val notificationId = 101
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "PLUGD Reminders",
+                "PLUGD Notifications",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Reminders and app notifications"
+                description = "General PLUGD notifications and reminders"
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Build the actual notification
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Stay connected 💡")
-            .setContentText("Check in on your PLUGD updates or messages!")
+            .setSmallIcon(R.drawable.plugd_icon)
+            .setContentTitle("Stay connected with PLUGD 🔌")
+            .setContentText("Check your PLUGD updates and community activity.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
             .build()
 
         notificationManager.notify(notificationId, notification)
     }
 }
-
 
 
 

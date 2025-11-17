@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.plugd.ui.screens.onboarding.common.PLUGDButton
 import com.example.plugd.ui.screens.onboarding.common.PLUGDTextButton
@@ -26,7 +27,6 @@ import com.example.plugd.ui.screens.onboarding.components.OnboardingPage
 import com.example.plugd.ui.screens.onboarding.components.PagerIndicator
 import com.exmaple.plugd.ui.screens.theme.Dimens.MediumPadding2
 import kotlinx.coroutines.launch
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 

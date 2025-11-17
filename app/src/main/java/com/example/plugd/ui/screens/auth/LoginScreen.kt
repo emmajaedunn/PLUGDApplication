@@ -4,6 +4,8 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -36,11 +38,10 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
+    val scrollState = rememberScrollState()
+
     val authState by viewModel.authState.collectAsState()
     val context = LocalContext.current
-
-    val scope = rememberCoroutineScope()
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
     LaunchedEffect(authState) {
         authState?.let { result ->
@@ -48,22 +49,12 @@ fun LoginScreen(
                 Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
                 onLoginSuccess()
             }
-            result.onFailure { e ->
-                Toast.makeText(context, e.message ?: "Login failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Check biometric login automatically
-    val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
-        .collectAsState(initial = false)
-
-    LaunchedEffect(biometricEnabled) {
-        if (biometricEnabled) {
-            val (savedEmail, savedPassword) =
-                EncryptedPreferencesManager.getCredentials(context, currentUserId).first()
-            if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
-                viewModel.login(savedEmail, savedPassword)
+            result.onFailure {
+                Toast.makeText(
+                    context,
+                    "Login failed. Please check your email and password.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -71,6 +62,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
@@ -185,43 +177,35 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // --- BIOMETRIC LOGIN BUTTON (IF ENABLED) ---
+        val biometricEnabled = remember {
+            EncryptedPreferencesManager.isBiometricEnabled(context)
+        }
+        val (savedEmail, savedPassword) = remember {
+            EncryptedPreferencesManager.getCredentials(context)
+        }
+
+        if (biometricEnabled && !savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
+            BiometricLogin(
+                title = "Login with Biometrics",
+                canAuthenticate = true,
+                onAuthSuccess = {
+                    viewModel.login(savedEmail, savedPassword)
+                },
+                onAuthFailure = {
+                    Toast.makeText(
+                        context,
+                        "Biometric login cancelled or failed. You can still login with email & password.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        }
 
         // Error message
         if (errorMessage.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        val scope = rememberCoroutineScope()
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-
-        val biometricEnabled by EncryptedPreferencesManager.isBiometricEnabled(context, currentUserId)
-            .collectAsState(initial = false)
-
-        // Biometric login button
-        if (biometricEnabled) {
-            Spacer(modifier = Modifier.height(16.dp))
-            BiometricLogin(
-                title = "Login with Biometrics",
-                canAuthenticate = true,
-                onAuthSuccess = {
-                    scope.launch {
-                        val (savedEmail, savedPassword) =
-                            EncryptedPreferencesManager.getCredentials(context, currentUserId).first()
-                        if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
-                            viewModel.login(savedEmail, savedPassword)
-                        }
-                    }
-                },
-                onAuthFailure = { /* fallback to manual login */ }
-            )
-        }
-
-        if (errorMessage.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(errorMessage, color = MaterialTheme.colorScheme.error)
         }
     }
 }

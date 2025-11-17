@@ -43,38 +43,14 @@ fun RegisterScreen(
                 viewModel.clearAuthState()
                 onRegisterSuccess()
             }
-            result.onFailure { e ->
-                Toast.makeText(context, e.message ?: "Registration failed", Toast.LENGTH_SHORT).show()
-                errorMessage = e.message ?: "Registration failed"
+            result.onFailure {
+                val msg = "Registration failed. Please check your details and try again."
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                errorMessage = msg
                 viewModel.clearAuthState()
             }
         }
     }
-
-    /*val authState by viewModel.authState.collectAsState()
-    var message by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-
-    LaunchedEffect(authState) {
-        authState?.let { result ->
-            result.onSuccess {
-                Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
-                onRegisterSuccess()
-            }
-            result.onFailure { e ->
-                Toast.makeText(context, e.message ?: "Registration failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Observe auth state
-    LaunchedEffect(authState) {
-        authState?.let { result ->
-            result.onSuccess { onRegisterSuccess() }
-            result.onFailure { e -> errorMessage = e.message ?: "Registration failed" }
-        }
-    }*/
 
     Column(
         modifier = Modifier
@@ -147,10 +123,20 @@ fun RegisterScreen(
         Button(
             onClick = {
                 errorMessage = ""
+
                 when {
                     name.isBlank() || username.isBlank() || email.isBlank() || password.isBlank() -> {
                         errorMessage = "Please fill in all fields"
                     }
+
+                    !isStrongPassword(password) -> {
+                        errorMessage =
+                            "Password must be at least 8 characters and include:\n" +
+                                    "• 1 uppercase letter\n" +
+                                    "• 1 number\n" +
+                                    "• 1 symbol (e.g. !@#\$%)"
+                    }
+
                     else -> viewModel.register(name, username, email, password)
                 }
             },
@@ -166,10 +152,7 @@ fun RegisterScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Divider
         HorizontalDivider(thickness = 1.dp, color = DividerDefaults.color)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // Google Sign-In button
@@ -185,4 +168,18 @@ fun RegisterScreen(
             Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
         }
     }
+}
+
+// Simple password strength check:
+// - at least 8 characters
+// - at least 1 uppercase
+// - at least 1 digit
+// - at least 1 symbol
+private fun isStrongPassword(password: String): Boolean {
+    val hasMinLength = password.length >= 8
+    val hasUpper = password.any { it.isUpperCase() }
+    val hasDigit = password.any { it.isDigit() }
+    val hasSymbol = password.any { !it.isLetterOrDigit() }
+
+    return hasMinLength && hasUpper && hasDigit && hasSymbol
 }

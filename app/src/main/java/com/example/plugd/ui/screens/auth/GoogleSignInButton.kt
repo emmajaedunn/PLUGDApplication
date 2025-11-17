@@ -1,12 +1,15 @@
 package com.example.plugd.ui.screens.auth
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -15,64 +18,98 @@ import androidx.compose.ui.unit.dp
 import com.example.plugd.R
 import com.example.plugd.ui.auth.AuthViewModel
 import com.example.plugd.ui.auth.GoogleAuthUiClient
-import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.example.plugd.ui.theme.Telegraf
 import kotlinx.coroutines.launch
 
 @Composable
 fun GoogleSignInButton(
-    viewModel: AuthViewModel,
+    viewModel: AuthViewModel,          // included so your call site compiles, even if not used
     googleAuthClient: GoogleAuthUiClient,
     onSuccess: () -> Unit
 ) {
-    var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clickable {
-                (context as? Activity)?.let { activity ->
-                    CoroutineScope(Dispatchers.Main).launch {
-                        try {
-                            val googleCredential = googleAuthClient.signIn().getOrThrow()
-                            val idToken = googleCredential.idToken
-                            if (!idToken.isNullOrEmpty()) {
-                                viewModel.loginWithGoogle(
-                                    GoogleAuthProvider.getCredential(idToken, null)
-                                )
+    TextButton(
+        onClick = {
+            val activity = context as? Activity
+            if (activity == null) {
+                Toast.makeText(
+                    context,
+                    "Google sign-in not available.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@TextButton
+            }
+
+            scope.launch {
+                try {
+                    // 1) Use your existing GoogleAuthUiClient logic
+                    val result = googleAuthClient.signIn()
+
+                    if (result.isSuccess) {
+                        val googleCredential = result.getOrThrow()
+                        val idToken = googleCredential.idToken
+
+                        if (!idToken.isNullOrEmpty()) {
+                            // 2) Firebase sign-in using your helper
+                            val user = googleAuthClient.firebaseSignInWithGoogle(idToken)
+
+                            if (user != null) {
                                 onSuccess()
                             } else {
-                                errorMessage = "Google ID token is null"
+                                Toast.makeText(
+                                    context,
+                                    "Google sign-in failed. Please try again.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Google Sign-In failed"
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Google ID token is null.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Google sign-in failed. Please try again.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context,
+                        "Google sign-in failed. Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            .padding(8.dp)
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary
+        )
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_google), // your drawable
-            contentDescription = "Google Icon",
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Continue with Google",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-
-    if (errorMessage.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = errorMessage,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_google), // or your google logo
+                contentDescription = "Google icon",
+                modifier = Modifier.size(20.dp) // match Biometric icon size
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Continue with Google",
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = Telegraf,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.W500
+                )
+            )
+        }
     }
 }

@@ -94,32 +94,37 @@ class ChatViewModel(
         }
     }
 
-
-
     suspend fun sendAttachment(channelId: String, uri: Uri, contentResolver: ContentResolver) {
         val user = auth.currentUser ?: return
         val (username, profileUrl) = getCurrentUserMeta()
 
+        // Detect type (e.g., image/jpeg)
         val type = contentResolver.getType(uri) ?: "application/octet-stream"
         val fileName = UUID.randomUUID().toString()
 
         val ref = storage.reference.child("channels/$channelId/attachments/$fileName")
+
+        // 1) Upload to Storage
         ref.putFile(uri).await()
         val downloadUrl = ref.downloadUrl.await().toString()
 
+        // 2) Build message with media fields
         val msg = hashMapOf(
             "channelId" to channelId,
             "senderId" to user.uid,
             "senderName" to username,
             "senderProfileUrl" to profileUrl,
-            "content" to "",
+            "content" to "", // attachment-only message
             "timestamp" to System.currentTimeMillis(),
             "mediaUrl" to downloadUrl,
             "mediaType" to type
         )
 
+        // 3) Save to Firestore
         firestore.collection("channels").document(channelId)
-            .collection("messages").add(msg).await()
+            .collection("messages")
+            .add(msg)
+            .await()
     }
 
     /*suspend fun sendMessage(channelId: String, text: String, replyTo: Message? = null) {

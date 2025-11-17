@@ -1,6 +1,73 @@
 package com.example.plugd.ui.utils
 
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+
+object EncryptedPreferencesManager {
+
+    private const val PREF_FILE_NAME = "secure_user_prefs"
+    private const val KEY_EMAIL = "user_email"
+    private const val KEY_PASSWORD = "user_password"
+    private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
+
+    private fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        return EncryptedSharedPreferences.create(
+            context,
+            PREF_FILE_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
+    fun saveCredentials(context: Context, email: String, password: String) {
+        val prefs = getEncryptedSharedPreferences(context)
+        prefs.edit()
+            .putString(KEY_EMAIL, email)
+            .putString(KEY_PASSWORD, password)
+            .apply()
+    }
+
+    fun getCredentials(context: Context): Pair<String?, String?> {
+        val prefs = getEncryptedSharedPreferences(context)
+        val email = prefs.getString(KEY_EMAIL, null)
+        val password = prefs.getString(KEY_PASSWORD, null)
+        return email to password
+    }
+
+    fun setBiometricEnabled(context: Context, enabled: Boolean) {
+        val prefs = getEncryptedSharedPreferences(context)
+        prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
+    }
+
+    fun isBiometricEnabled(context: Context): Boolean {
+        val prefs = getEncryptedSharedPreferences(context)
+        return prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false)
+    }
+
+    fun clear(context: Context) {
+        val prefs = getEncryptedSharedPreferences(context)
+        prefs.edit().clear().apply()
+    }
+}
+
+
+
+
+
+
+
+
+
+/*package com.example.plugd.ui.utils
+
+import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -72,4 +139,4 @@ object EncryptedPreferencesManager {
 
     // Simulated function for your current user (you can integrate your actual logic)
     fun getCurrentUserId(): String = "default_user"
-}
+}*/

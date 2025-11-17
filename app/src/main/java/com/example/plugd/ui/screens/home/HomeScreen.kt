@@ -33,7 +33,8 @@ fun HomeScreen(
     val events by eventViewModel.events.collectAsState(initial = emptyList())
 
     // Filter events based on search query (category)
-    // 🔹 Local filter state (coming from FilterScreen)
+
+    // Local filter state (coming from FilterScreen)
     var filterLocation by remember { mutableStateOf("") }
     var filterCategory by remember { mutableStateOf("") }
     var sortByLatest by remember { mutableStateOf(true) }

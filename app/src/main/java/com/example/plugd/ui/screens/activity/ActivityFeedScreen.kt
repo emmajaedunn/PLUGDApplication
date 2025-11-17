@@ -95,7 +95,7 @@ fun ActivityFeedScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text("Error: $error", color = MaterialTheme.colorScheme.error)
                 }

@@ -1,7 +1,10 @@
 package com.example.plugd.ui.utils
 
-import android.app.*
-import android.content.*
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
@@ -10,54 +13,106 @@ import androidx.core.app.ActivityCompat
 class NotificationHelper(private val context: Context) {
 
     private val prefsName = "notification_prefs"
-    private val notificationPermissionCode = 101
+
+    private fun prefs(): SharedPreferences =
+        context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+
+    // Main notification toggle in Settings
 
     fun isNotificationsEnabled(): Boolean {
-        val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        return prefs.getBoolean("notifications_enabled", false)
+        return prefs().getBoolean("notifications_enabled", false)
     }
 
     fun toggleNotifications(isEnabled: Boolean) {
-        val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("notifications_enabled", isEnabled).apply()
+        prefs().edit().putBoolean("notifications_enabled", isEnabled).apply()
 
         if (isEnabled) {
+            // Check permission for Android 13+
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
-                == PackageManager.PERMISSION_GRANTED
+                ActivityCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
             ) {
-                scheduleRepeatingNotification()
+                // Show an immediate notification
+                showImmediateReminder()
+
+                // Schedule daily reminder
+                scheduleDailyNotification()
+
                 Toast.makeText(context, "Notifications enabled", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "Grant notification permission to enable this feature.", Toast.LENGTH_LONG).show()
-                toggleNotifications(false)
+                Toast.makeText(
+                    context,
+                    "Grant notification permission to enable this feature.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                // Roll back the flag
+                prefs().edit().putBoolean("notifications_enabled", false).apply()
             }
         } else {
-            cancelRepeatingNotification()
+            cancelDailyNotification()
             Toast.makeText(context, "Notifications turned off", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun scheduleRepeatingNotification() {
+    // ---------- CHANNEL / COMMUNITY MESSAGE NOTIFICATIONS ----------
+
+    fun isChannelNotificationsEnabled(): Boolean {
+        return prefs().getBoolean("channel_notifications_enabled", true)
+    }
+
+    fun setChannelNotificationsEnabled(enabled: Boolean) {
+        prefs().edit().putBoolean("channel_notifications_enabled", enabled).apply()
+    }
+
+    // ---------- IMMEDIATE + DAILY REMINDERS ----------
+
+    private fun showImmediateReminder() {
         val intent = Intent(context, NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        // Broadcast directly → NotificationReceiver will build the notif
+        context.sendBroadcast(intent)
+    }
+
+    private fun scheduleDailyNotification() {
+        val intent = Intent(context, NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            DAILY_REMINDER_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val intervalMillis = 6 * 60 * 60 * 1000L // every 6 hours
-        val startTime = System.currentTimeMillis() + 5000L
+        val intervalMillis = AlarmManager.INTERVAL_DAY
 
-        alarmManager.setRepeating(
+        // First trigger: you can pick “now + a few seconds” or “tomorrow at X time”
+        val triggerAtMillis = System.currentTimeMillis() + intervalMillis
+
+        alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
-            startTime,
+            triggerAtMillis,
             intervalMillis,
             pendingIntent
         )
     }
 
-    private fun cancelRepeatingNotification() {
+    private fun cancelDailyNotification() {
         val intent = Intent(context, NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            DAILY_REMINDER_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
+    }
+
+    companion object {
+        const val MAIN_CHANNEL_ID = "plugd_main_channel"
+        private const val DAILY_REMINDER_REQUEST_CODE = 1001
     }
 }

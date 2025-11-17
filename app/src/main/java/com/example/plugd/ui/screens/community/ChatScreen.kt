@@ -210,7 +210,8 @@ fun ChatMessageItem(
                         Spacer(Modifier.height(4.dp))
                     }
 
-                    if (message.mediaUrl != null) {
+                    if (!message.mediaUrl.isNullOrBlank()) {
+                        // show image / attachment
                         if ((message.mediaType ?: "").startsWith("image/")) {
                             Image(
                                 painter = rememberAsyncImagePainter(message.mediaUrl),
@@ -227,7 +228,11 @@ fun ChatMessageItem(
                     }
 
                     if (message.content.isNotBlank()) {
-                        Text(text = message.content, color = textColor, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = message.content,
+                            color = textColor,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
 
                     if (message.reactions.isNotEmpty()) {
@@ -243,14 +248,13 @@ fun ChatMessageItem(
                 }
             }
 
-            val menuBackground = Color.White // light orange
-            val menuBorder = Color(0xFFFFB74D)     // slightly darker orange
+            val menuBackground = Color.White
 
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
-                modifier = Modifier,                // no extra background here
-                containerColor = menuBackground     // 👈 key line to kill the purple
+                modifier = Modifier,
+                containerColor = menuBackground
             ) {
                 Column(
                     modifier = Modifier

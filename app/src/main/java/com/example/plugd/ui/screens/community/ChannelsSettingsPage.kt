@@ -12,16 +12,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.plugd.R
-import com.example.plugd.ui.components.SettingsItem
 import com.example.plugd.ui.components.SettingsToggle
+import com.example.plugd.ui.theme.Telegraf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChannelsSettingsPage(navController: NavHostController) {
-    // Toggle states
+
+    // Toggles for channel settings
     var channelNotificationsEnabled by remember { mutableStateOf(true) }
-    var autoJoinChannels by remember { mutableStateOf(false) }
     var showMutedChannels by remember { mutableStateOf(true) }
+    var autoJoinChannels by remember { mutableStateOf(false) }
     var privateChannelsOnly by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
@@ -38,7 +39,9 @@ fun ChannelsSettingsPage(navController: NavHostController) {
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
         }
     ) { innerPadding ->
@@ -50,56 +53,50 @@ fun ChannelsSettingsPage(navController: NavHostController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // --- NOTIFICATIONS ---
-            Text("Notifications", style = MaterialTheme.typography.titleMedium)
+
+            Text(
+                text = "Notifications",
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
 
             SettingsToggle(
                 label = "Enable channel notifications",
+                subtitle = "Get alerts when new messages are posted",
                 checked = channelNotificationsEnabled,
                 onCheckedChange = { channelNotificationsEnabled = it }
             )
 
             SettingsToggle(
                 label = "Show muted channels",
+                subtitle = "Keep muted channels visible in your list",
                 checked = showMutedChannels,
                 onCheckedChange = { showMutedChannels = it }
             )
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
-            // --- CHANNEL MANAGEMENT ---
-            Text("Channel Management", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Channel Activity",
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Telegraf,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
 
             SettingsToggle(
-                label = "Auto-join new channels",
+                label = "Auto-join recommended channels",
+                subtitle = "Automatically join channels suggested for you",
                 checked = autoJoinChannels,
                 onCheckedChange = { autoJoinChannels = it }
             )
 
             SettingsToggle(
                 label = "Private channels only",
+                subtitle = "Only show & join channels that are private",
                 checked = privateChannelsOnly,
                 onCheckedChange = { privateChannelsOnly = it }
             )
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-
-            // --- OTHER SETTINGS ---
-            Text("Other Settings", style = MaterialTheme.typography.titleMedium)
-
-            SettingsItem(
-                label = "Manage Channel Roles",
-                value = "Adjust permissions and roles for each channel"
-            ) {
-                // Placeholder for role management action
-            }
-
-            SettingsItem(
-                label = "Channel Visibility",
-                value = "Control which channels are visible to members"
-            ) {
-                // Placeholder for visibility settings
-            }
         }
     }
 }

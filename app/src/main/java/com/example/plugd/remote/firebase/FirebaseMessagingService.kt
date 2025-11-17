@@ -1,58 +1,74 @@
 package com.example.plugd.remote.firebase
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.plugd.R
+import com.example.plugd.ui.utils.NotificationHelper
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
-class FirebaseMessagingService : FirebaseMessagingService() {
+class FirebaseMessagingServiceImpl : FirebaseMessagingService() {
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        // TODO: send token to backend
-    }
+    override fun onMessageReceived(message: RemoteMessage) {
+        super.onMessageReceived(message)
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        super.onMessageReceived(remoteMessage)
+        val helper = NotificationHelper(applicationContext)
 
-        remoteMessage.notification?.let {
-            showNotification(it.title ?: "PLUGD", it.body ?: "New message")
+        // Respect master + community/channel toggle
+        if (!helper.isNotificationsEnabled() || !helper.isChannelNotificationsEnabled()) {
+            return
         }
 
-        // Optional: handle data payload
-        if (remoteMessage.data.isNotEmpty()) {
-            val chatMessage = remoteMessage.data["chatMessage"]
-            chatMessage?.let {
-                showNotification("New Chat Message", it)
-            }
-        }
-    }
+        val channelId = "plugd_realtime_channel"
 
-    private fun showNotification(title: String, body: String) {
-        val channelId = "plugd_channel"
+        createChannelIfNeeded(channelId)
 
-        // Create channel on Android 8+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "PLUGD Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
-        }
+        val title = message.data["title"]
+            ?: message.notification?.title
+            ?: "PLUGD"
+
+        val body = message.data["body"]
+            ?: message.notification?.body
+            ?: "You have a new update in PLUGD"
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.plugd_icon)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        val notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+        with(NotificationManagerCompat.from(this)) {
+            if (ActivityCompat.checkSelfPermission(
+                    this as Context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            notify(System.currentTimeMillis().toInt(), notification)
+        }
+    }
+
+    private fun createChannelIfNeeded(channelId: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel(
+                channelId,
+                "PLUGD real-time notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Follow requests, messages, new plugs, etc."
+            }
+            manager.createNotificationChannel(channel)
+        }
     }
 }

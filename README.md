@@ -148,9 +148,7 @@ When designing The PLUGD Platform, the following principles were prioritized:
 - The app uses `AppNavHost` and `MainScreenNavGraph` to handle authentication flow and main app flow separately.  
 - Screens include: Login, Register, Forgot Password, Home, Event Details, Add Plug (Event), Actvity (User feed), Profile, Settings, Community, Chat Screen, About/Support Page.  
 
-**Screenshots:**
-
-
+**App Screens Screenshots:** View in Main Project Folder under 'App Screens'
 
 ---
 

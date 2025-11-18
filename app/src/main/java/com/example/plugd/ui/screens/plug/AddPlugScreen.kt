@@ -42,7 +42,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.util.UUID
 import androidx.compose.material3.Icon
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AddPlugScreen(
@@ -62,7 +61,7 @@ fun AddPlugScreen(
 
     var supportDocsUrl by remember { mutableStateOf<String?>(null) }
 
-    // Fetch username & name from Firestore (unchanged)
+    // Fetch username & name from Firestore
     LaunchedEffect(currentUserId) {
         if (currentUserId.isNotEmpty()) {
             firestore.collection("users").document(currentUserId).get()
@@ -82,7 +81,7 @@ fun AddPlugScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Location + coords
+    // Location
     var location by remember { mutableStateOf("") }
     var selectedLat by remember { mutableStateOf<Double?>(null) }
     var selectedLng by remember { mutableStateOf<Double?>(null) }

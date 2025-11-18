@@ -47,10 +47,11 @@ class ChatViewModel(
             }
     }
 
-    // --- MESSAGES LOGIC (Unchanged) ---
+    // Fetch username + profilePictureUrl from Firestore
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
 
+    // Load messages for a channel
     fun loadMessages(channelId: String) {
         firestore.collection("channels").document(channelId)
             .collection("messages")
@@ -61,6 +62,7 @@ class ChatViewModel(
             }
     }
 
+    // Send message
     suspend fun sendMessage(channelId: String, text: String, replyTo: Message? = null) {
         val user = auth.currentUser ?: return
         val (username, profileUrl) = getCurrentUserMeta()
@@ -79,7 +81,6 @@ class ChatViewModel(
         firestore.collection("channels").document(channelId)
             .collection("messages").add(msg).await()
 
-        // JUST ADDED 🔹 Create activity if this is a reply to someone ELSE
         if (replyTo != null && replyTo.senderId != user.uid) {
             val meProfile = profileRepository.getRemoteProfile(user.uid)
             val myUsername = meProfile?.username ?: username ?: "Someone"
@@ -94,6 +95,7 @@ class ChatViewModel(
         }
     }
 
+    // Send attachment
     suspend fun sendAttachment(channelId: String, uri: Uri, contentResolver: ContentResolver) {
         val user = auth.currentUser ?: return
         val (username, profileUrl) = getCurrentUserMeta()
@@ -104,11 +106,11 @@ class ChatViewModel(
 
         val ref = storage.reference.child("channels/$channelId/attachments/$fileName")
 
-        // 1) Upload to Storage
+        // Upload to Storage
         ref.putFile(uri).await()
         val downloadUrl = ref.downloadUrl.await().toString()
 
-        // 2) Build message with media fields
+        // Build message with media fields
         val msg = hashMapOf(
             "channelId" to channelId,
             "senderId" to user.uid,
@@ -120,57 +122,17 @@ class ChatViewModel(
             "mediaType" to type
         )
 
-        // 3) Save to Firestore
+        // Save to Firestore
         firestore.collection("channels").document(channelId)
             .collection("messages")
             .add(msg)
             .await()
     }
 
-    /*suspend fun sendMessage(channelId: String, text: String, replyTo: Message? = null) {
-        val user = auth.currentUser ?: return
-        val msg = hashMapOf(
-            "channelId" to channelId,
-            "senderId" to user.uid,
-            "senderName" to user.displayName,
-            "senderProfileUrl" to user.photoUrl?.toString(),
-            "content" to text,
-            "timestamp" to System.currentTimeMillis(),
-            "replyToMessageId" to replyTo?.id,
-            "replyToSnippet" to replyTo?.content?.take(80),
-        )
-        firestore.collection("channels").document(channelId)
-            .collection("messages").add(msg).await()
-    }
-
-    suspend fun sendAttachment(channelId: String, uri: Uri, contentResolver: ContentResolver) {
-        val user = auth.currentUser ?: return
-        val type = contentResolver.getType(uri) ?: "application/octet-stream"
-        val fileName = UUID.randomUUID().toString()
-
-        val ref = storage.reference.child("channels/$channelId/attachments/$fileName")
-        ref.putFile(uri).await()
-        val downloadUrl = ref.downloadUrl.await().toString()
-
-        val msg = hashMapOf(
-            "channelId" to channelId,
-            "senderId" to user.uid,
-            "senderName" to user.displayName,
-            "senderProfileUrl" to user.photoUrl?.toString(),
-            "content" to "",
-            "timestamp" to System.currentTimeMillis(),
-            "mediaUrl" to downloadUrl,
-            "mediaType" to type
-        )
-        firestore.collection("channels").document(channelId)
-            .collection("messages").add(msg).await()
-    }*/
-
+    // Send reply
     fun sendReply(chatId: String, toUserId: String, text: String) {
         viewModelScope.launch {
-            // 1) send the message to Firestore like you already do...
 
-            // 2) add activity for the owner of the original message
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
             val me = profileRepository.getRemoteProfile(currentUserId)
             val myUsername = me?.username ?: "Someone"
@@ -185,35 +147,7 @@ class ChatViewModel(
         }
     }
 
-    /*suspend fun toggleReaction(channelId: String, messageId: String, emoji: String) {
-        val uid = auth.currentUser?.uid ?: return
-        val msgRef = firestore.collection("channels").document(channelId)
-            .collection("messages").document(messageId)
-
-        firestore.runTransaction { tx ->
-            val snap = tx.get(msgRef)
-            val reactions = (snap.get("reactions") as? Map<String, Long>)?.toMutableMap() ?: mutableMapOf()
-            val reactors = (snap.get("reactors") as? Map<String, String>)?.toMutableMap() ?: mutableMapOf()
-
-            val current = reactors[uid]
-            if (current == emoji) {
-                reactors.remove(uid)
-                reactions[emoji] = (reactions[emoji] ?: 1) - 1
-                if ((reactions[emoji] ?: 0) <= 0) reactions.remove(emoji)
-            } else {
-                if (current != null) {
-                    reactions[current] = (reactions[current] ?: 1) - 1
-                    if ((reactions[current] ?: 0) <= 0) reactions.remove(current)
-                }
-                reactors[uid] = emoji
-                reactions[emoji] = (reactions[emoji] ?: 0) + 1
-            }
-
-            tx.update(msgRef, mapOf("reactions" to reactions, "reactors" to reactors))
-            null
-        }.await()
-    }*/
-
+    // Toggle reaction
     suspend fun toggleReaction(channelId: String, messageId: String, emoji: String) {
         val uid = auth.currentUser?.uid ?: return
         val msgRef = firestore.collection("channels").document(channelId)
@@ -227,12 +161,10 @@ class ChatViewModel(
 
             val current = reactors[uid]
             if (current == emoji) {
-                // remove reaction
                 reactors.remove(uid)
                 reactions[emoji] = (reactions[emoji] ?: 1) - 1
                 if ((reactions[emoji] ?: 0) <= 0) reactions.remove(emoji)
             } else {
-                // change / add reaction
                 if (current != null) {
                     reactions[current] = (reactions[current] ?: 1) - 1
                     if ((reactions[current] ?: 0) <= 0) reactions.remove(current)
@@ -245,10 +177,10 @@ class ChatViewModel(
             null
         }.await()
 
-        // 🔹 After updating, create an activity for the message owner (if not reacting to yourself)
+        // Update activity feed
         val snap = msgRef.get().await()
         val ownerId = snap.getString("senderId") ?: return
-        if (ownerId == uid) return  // don't notify yourself
+        if (ownerId == uid) return
 
         val meProfile = profileRepository.getRemoteProfile(uid)
         val myUsername = meProfile?.username ?: "Someone"
@@ -263,131 +195,3 @@ class ChatViewModel(
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*class ChatViewModel(
-    private val repository: ChatRepository,
-    val currentUserId: String
-) : ViewModel() {
-
-    // Channels
-    private val _channels = MutableStateFlow<List<Channel>>(emptyList())
-    val channels: StateFlow<List<Channel>> get() = _channels
-
-    fun loadChannels() {
-        viewModelScope.launch {
-            repository.getChannels().collect { _channels.value = it }
-        }
-    }
-
-    // Messages
-    private val _messages = MutableStateFlow<List<Message>>(emptyList())
-    val messages: StateFlow<List<Message>> get() = _messages
-
-    fun loadMessages(channelId: String) {
-        viewModelScope.launch {
-            repository.getMessages(channelId).collect { msgs ->
-                _messages.value = msgs
-            }
-        }
-    }
-
-    // Observe Real-time Messages
-    fun observeRealtimeMessages(channelId: String, onNewMessage: (Message) -> Unit) {
-        viewModelScope.launch {
-            repository.observeRealtimeMessages(channelId).collect { msg ->
-                if (_messages.value.none { it.id == msg.id }) {
-                    _messages.value = _messages.value + msg
-                    if (msg.senderId != currentUserId) onNewMessage(msg)
-                }
-            }
-        }
-    }
-
-    // Current User
-    private val _currentUserName = mutableStateOf("Loading...")
-    val currentUserName: State<String> get() = _currentUserName
-
-    init {
-        viewModelScope.launch {
-            try {
-                _currentUserName.value = repository.getUserName(currentUserId)
-            } catch (e: Exception) {
-                _currentUserName.value = "Unknown"
-            }
-        }
-    }
-
-    /* CORRECT  Send Message
-    fun sendMessage(channelId: String, content: String) {
-        viewModelScope.launch {
-            try {
-                // Use Firestore username
-                val username = _currentUserName.value
-
-                val message = Message(
-                    id = "",
-                    channelId = channelId,
-                    senderId = currentUserId,
-                    content = content,
-                    senderName = username,
-                    timestamp = System.currentTimeMillis()
-                )
-
-                repository.sendMessage(channelId, message)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }*/
-
-    fun sendMessage(channelId: String, content: String) {
-        viewModelScope.launch {
-            try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-                val username = repository.getUserName(userId) // fetch latest
-
-                val message = Message(
-                    id = "",
-                    channelId = channelId,
-                    senderId = userId,
-                    content = content,
-                    senderName = username,
-                    timestamp = System.currentTimeMillis()
-                )
-                repository.sendMessage(channelId, message)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-}*/
-
-

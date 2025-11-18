@@ -1,6 +1,5 @@
 package com.example.plugd.ui.screens.settings
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.plugd.MainActivity
@@ -44,7 +44,7 @@ fun LanguagePreferencesScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(id = R.string.language_preferences), style = MaterialTheme.typography.headlineSmall, fontFamily = Telegraf) },
+                title = { Text(stringResource(id = R.string.language_preferences)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -63,7 +63,9 @@ fun LanguagePreferencesScreen(navController: NavController) {
         ) {
             Text(
                 text = stringResource(id = R.string.language_preferences),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = Telegraf,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 

@@ -1,6 +1,5 @@
 package com.example.plugd.remote.api.spotify
 
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import java.security.MessageDigest

@@ -104,7 +104,7 @@ fun ChatScreen(
                                 viewModel.toggleReaction(channelId, msg.id, emoji)
                             }
                         },
-                        onReply = { m -> replyTo = m } // FIX: This now works
+                        onReply = { m -> replyTo = m }
                     )
                 }
             }
@@ -336,9 +336,10 @@ fun ChatInputBar(
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onAttachClick) {
-            Icon(painter = painterResource(id = R.drawable.btn_attach), contentDescription = "Attach", tint = Color(0xFFFF9800))
-        }
+        Icon(
+            painter = painterResource(id = R.drawable.btn_attach),
+            contentDescription = "Pick file"
+        )
 
         TextField(
             value = messageText,

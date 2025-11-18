@@ -41,6 +41,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.util.UUID
+import androidx.compose.material3.Icon
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AddPlugScreen(
@@ -90,7 +92,6 @@ fun AddPlugScreen(
     var plugCategory by remember { mutableStateOf("") }
     var plugTitle by remember { mutableStateOf("") }
     var plugDescription by remember { mutableStateOf("") }
-    var supportDocs by remember { mutableStateOf<String?>(null) }
 
     // File picker
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -307,7 +308,9 @@ fun AddPlugScreen(
 
             FilePickerField(
                 supportDocsUrl = supportDocsUrl,
-                onPickClick = { filePickerLauncher.launch("*/*") }
+                onPickClick = {
+                    filePickerLauncher.launch("*/*")
+                }
             )
 
             Spacer(Modifier.height(16.dp))
@@ -348,45 +351,6 @@ fun AddPlugScreen(
         }
     }
 }
-
-@Composable
-fun FilePickerField(
-    supportDocsUrl: String?,
-    onPickClick: () -> Unit
-) {
-    val label = remember(supportDocsUrl) {
-        if (supportDocsUrl.isNullOrBlank()) {
-            "No file selected"
-        } else {
-            val afterSlash = supportDocsUrl.substringAfterLast("%2F")
-                .substringAfterLast("/")
-            val clean = afterSlash.substringBefore("?")
-            try {
-                java.net.URLDecoder.decode(clean, "UTF-8")
-            } catch (e: Exception) {
-                clean
-            }
-        }
-    }
-
-    OutlinedTextField(
-        value = label,
-        onValueChange = {},
-        readOnly = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onPickClick() },
-        trailingIcon = {
-            IconButton(onClick = onPickClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.btn_attach),
-                    contentDescription = "Pick file"
-                )
-            }
-        }
-    )
-}
-
 @Composable
 fun PlugdAppIcon(modifier: Modifier = Modifier, isDarkMode: Boolean = isSystemInDarkTheme()) {
     val iconRes = if (isDarkMode) R.drawable.plugd_dark_icon else R.drawable.plugd_icon

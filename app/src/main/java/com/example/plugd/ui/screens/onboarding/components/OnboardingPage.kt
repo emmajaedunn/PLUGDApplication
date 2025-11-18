@@ -18,7 +18,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.plugd.R
 import com.exmaple.plugd.ui.screens.theme.Dimens.MediumPadding1
@@ -64,21 +63,6 @@ fun OnboardingPage(
             ),
             color = colorResource(id = R.color.text_medium),
             textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun OnBoardingPagePreview() {
-    PLUGDTheme {
-        OnboardingPage(
-            page = Page(
-                title = "Lorem Ipsum is simply dummy",
-                description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-                image = R.drawable.onboarding_current
-            )
         )
     }
 }

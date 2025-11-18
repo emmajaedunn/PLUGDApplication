@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.plugd.MainActivity
 import com.example.plugd.R
+import com.example.plugd.ui.theme.Telegraf
 import com.example.plugd.ui.utils.AppLanguageHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +44,7 @@ fun LanguagePreferencesScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(id = R.string.language_preferences)) },
+                title = { Text(stringResource(id = R.string.language_preferences), style = MaterialTheme.typography.headlineSmall, fontFamily = Telegraf) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

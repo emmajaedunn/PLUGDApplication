@@ -62,3 +62,13 @@ Thumbs.db
 # Backup files
 *~
 *.swp
+
+# Root-level node_modules
+node_modules/
+
+# Entire IDE folder
+.idea/
+
+# Keystores (never commit)
+*.jks
+GooglePlayStoreAPK.jks

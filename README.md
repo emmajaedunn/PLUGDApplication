@@ -8,9 +8,9 @@ Created by **Emma Jae Dunn**
 Student Number: **ST10301125**  
 Module: **Programming 3D - PROG7314**  
 
-**Youtube Demonstration Video:** 
+**Youtube Demonstration Video:** https://youtu.be/4JaDrA9649c 
 
-**GitHub Link** https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git
+**GitHub Link** [https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git](https://github.com/emmajaedunn/PLUGDApplication.git)
 
 ---
 
@@ -205,7 +205,7 @@ jobs:
 <img width="939" height="559" alt="image" src="https://github.com/user-attachments/assets/8b2546e6-c596-4209-8f5e-873808d47fa5" />
 
 ## Installation and Setup 
-1. Clone the repository: git clone [https://github.com/emmajaedunn/ThePLUGDPlatform.git](https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git)
+1. Clone the repository: git clone https://github.com/emmajaedunn/PLUGDApplication.git
 2. Open the project in Android Studio.
 3. Add API Keys - Create a local secrets.properties file:
 - MAPS_API_KEY="AIzaSyCNR_70bFeAZMeRtOWOUb4Cza_Zn35x7Es"

@@ -150,6 +150,8 @@ When designing The PLUGD Platform, the following principles were prioritized:
 
 **Screenshots:**
 
+
+
 ---
 
 ## GitHub and CI/CD Utilisation
@@ -174,9 +176,9 @@ Key features include:
        4. Upload artifacts for review  
 
 **CI Badge:**  
-![Build Status](https://github.com/<emmajaedunn>/<ThePLUGDPlatform>/actions/workflows/android-ci.yml/badge.svg)
+[![Android CI](https://github.com/emmajaedunn/PLUGDApplication/actions/workflows/android-ci.yml/badge.svg)](https://github.com/emmajaedunn/PLUGDApplication/actions/workflows/android-ci.yml)
 
-**Workflow Screenshot:**
+**GitHub Workflow (Testing):**
 
 name: Android CI
 
@@ -201,16 +203,16 @@ jobs:
       run: ./gradlew build
     - name: Run tests
       run: ./gradlew test
-	  
-![GitHub Actions Workflow](images/github_actions.png)
+
+<img width="939" height="559" alt="image" src="https://github.com/user-attachments/assets/8b2546e6-c596-4209-8f5e-873808d47fa5" />
 
 ## Installation and Setup 
 1. Clone the repository: git clone [https://github.com/emmajaedunn/ThePLUGDPlatform.git](https://github.com/VCCT-PROG7314-2025-G1/ThePLUGDPlatform.git)
 2. Open the project in Android Studio.
 3. Add API Keys - Create a local secrets.properties file:
-- MAPS_API_KEY=""
-- SPOTIFY_CLIENT_ID=""
-- SPOTIFY_CLIENT_SECRET=""
+- MAPS_API_KEY="AIzaSyCNR_70bFeAZMeRtOWOUb4Cza_Zn35x7Es"
+- SPOTIFY_CLIENT_ID="90806edf5fdc4928a6fcc4a3a40b5ff2"
+- SPOTIFY_CLIENT_SECRET="plugd://spotify-callback"
 4. Configure Firebase and add google-services.json.
 5. Build and run the app on emulator or device.
 

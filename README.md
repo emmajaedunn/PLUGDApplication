@@ -178,16 +178,16 @@ Key features include:
 
 **Workflow Screenshot:**
 
-	name: Android CI
+name: Android CI
 
-	on:
-  	push:
+on:
+  push:
     branches: [ main, develop ]
-  	pull_request:
+  pull_request:
     branches: [ main, develop ]
 
-	jobs:
-  	build:
+jobs:
+  build:
     runs-on: ubuntu-latest
 
     steps:
